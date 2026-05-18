@@ -1,0 +1,32 @@
+﻿#!/usr/bin/env sh
+# ----------------------------------------------------------------------------
+# Maven Wrapper
+# This file must be kept executable and in the project root.
+# ----------------------------------------------------------------------------
+
+PRG="$0"
+while [ -h "$PRG" ]; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`"/$link"
+  fi
+done
+
+SAVED="`pwd`"
+cd "`dirname "$PRG"`" >/dev/null
+BASEDIR="`pwd`"
+cd "$SAVED" >/dev/null
+
+MAVEN_PROJECTBASEDIR="$BASEDIR"
+MAVEN_WRAPPER_DIR="$MAVEN_PROJECTBASEDIR/.mvn/wrapper"
+
+if [ -z "$JAVA_HOME" ]; then
+  JAVA_CMD=java
+else
+  JAVA_CMD="$JAVA_HOME/bin/java"
+fi
+
+exec "$JAVA_CMD" -jar "$MAVEN_WRAPPER_DIR/maven-wrapper.jar" "$@"
