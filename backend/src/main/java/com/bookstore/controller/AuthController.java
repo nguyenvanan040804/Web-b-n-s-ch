@@ -5,11 +5,7 @@ import com.bookstore.model.RegisterRequest;
 import com.bookstore.model.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,7 +18,10 @@ public class AuthController {
     private final Map<String, User> users = new ConcurrentHashMap<>();
 
     public AuthController() {
-        users.put("demo@bookstore.com", new User("Demo Reader", "demo@bookstore.com", "demo123"));
+        // demo regular user
+        users.put("demo@bookstore.com", new User("Demo Reader", "demo@bookstore.com", "demo123", "user", "0987654321", "123 Đường Láng, Đống Đa, Hà Nội"));
+        // initial admin account
+        users.put("admin@bookstore.com", new User("Site Admin", "admin@bookstore.com", "admin123", "admin", "0900000000", "Văn phòng Nhà Sách, Quận 1, TP.HCM"));
     }
 
     @PostMapping("/login")
@@ -39,7 +38,10 @@ public class AuthController {
             "success", true,
             "message", "Đăng nhập thành công! Chào mừng " + user.getName(),
             "name", user.getName(),
-            "email", user.getEmail()
+            "email", user.getEmail(),
+            "role", user.getRole(),
+            "phone", user.getPhone() == null ? "" : user.getPhone(),
+            "address", user.getAddress() == null ? "" : user.getAddress()
         ));
     }
 
@@ -53,14 +55,52 @@ public class AuthController {
             ));
         }
 
-        User user = new User(request.getName(), email, request.getPassword());
+        User user = new User(request.getName(), email, request.getPassword(), "user", "", "");
         users.put(email, user);
 
         return ResponseEntity.ok(Map.of(
             "success", true,
             "message", "Đăng ký thành công! Chào mừng " + user.getName(),
             "name", user.getName(),
-            "email", user.getEmail()
+            "email", user.getEmail(),
+            "role", user.getRole(),
+            "phone", "",
+            "address", ""
+        ));
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<Map<String, Object>> updateProfile(@RequestBody User profileData) {
+        if (profileData.getEmail() == null || profileData.getEmail().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Email không hợp lệ."
+            ));
+        }
+        String email = profileData.getEmail().toLowerCase();
+        User user = users.get(email);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Không tìm thấy tài khoản người dùng."
+            ));
+        }
+
+        user.setName(profileData.getName());
+        if (profileData.getPassword() != null && !profileData.getPassword().trim().isEmpty()) {
+            user.setPassword(profileData.getPassword());
+        }
+        user.setPhone(profileData.getPhone());
+        user.setAddress(profileData.getAddress());
+
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Cập nhật thông tin hồ sơ thành công!",
+            "name", user.getName(),
+            "email", user.getEmail(),
+            "role", user.getRole(),
+            "phone", user.getPhone() == null ? "" : user.getPhone(),
+            "address", user.getAddress() == null ? "" : user.getAddress()
         ));
     }
 }

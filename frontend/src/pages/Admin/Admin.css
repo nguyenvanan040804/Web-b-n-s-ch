@@ -1,0 +1,239 @@
+.admin-container {
+  max-width: 1200px;
+  margin: 0 auto 48px;
+  padding: 0 24px;
+}
+
+/* Analytics Stats Grid */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.admin-stat-card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.stat-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+}
+
+.revenue-icon {
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--primary-light);
+}
+
+.orders-icon {
+  background: rgba(22, 163, 74, 0.08);
+  color: var(--success);
+}
+
+.pending-icon {
+  background: rgba(217, 119, 6, 0.08);
+  color: var(--accent);
+}
+
+.stat-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-card-info span {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-card-info strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  font-family: var(--font-heading);
+}
+
+/* Tab Navigation */
+.admin-nav-tabs {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-dark);
+  margin-bottom: 32px;
+  padding-bottom: 2px;
+}
+
+.admin-tab-btn {
+  border: none;
+  background: transparent;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.admin-tab-btn:hover {
+  color: var(--primary-light);
+}
+
+.admin-tab-btn.active {
+  color: var(--primary);
+}
+
+.admin-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+/* Dashboard Sections */
+.admin-orders-section,
+.admin-add-book-section {
+  background: var(--card);
+  border-radius: 28px;
+  box-shadow: var(--shadow-md);
+  padding: 36px;
+  border: 1px solid var(--border);
+}
+
+.admin-orders-section h3,
+.admin-add-book-section h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+
+.admin-add-book-p {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+/* Data Table Styles */
+.admin-table-wrapper {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+
+.admin-table th {
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(248, 250, 252, 0.7);
+}
+
+.admin-status-lbl {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status-chờ-chuẩn-bị-hàng {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.status-đang-giao-hàng {
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--primary-light);
+}
+
+.status-đã-giao-thành-công {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.status-đã-hủy-đơn,
+.status-hủy-đơn-hàng {
+  background: var(--error-light);
+  color: var(--error);
+}
+
+.admin-status-select {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-dark);
+  font-size: 0.85rem;
+  background: var(--card);
+}
+
+/* Add Book Form Layout */
+.add-book-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.full-width-field {
+  grid-column: span 2;
+}
+
+.admin-select-field {
+  padding: 12px 16px;
+  border-radius: 14px;
+}
+
+.admin-msg-box {
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .add-book-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .full-width-field {
+    grid-column: span 1;
+  }
+  .admin-orders-section,
+  .admin-add-book-section {
+    padding: 24px;
+    border-radius: 20px;
+  }
+  .admin-table th,
+  .admin-table td {
+    padding: 12px 14px;
+  }
+}
