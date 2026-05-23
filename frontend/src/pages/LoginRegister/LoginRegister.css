@@ -1,0 +1,190 @@
+.login-shell {
+  width: min(100%, 980px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 28px;
+  background: var(--card);
+  border-radius: 28px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.login-brand {
+  padding: 48px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #fff;
+}
+
+.login-brand h1 {
+  color: #fff;
+  margin: 0;
+  font-size: clamp(2rem, 2.5vw, 2.6rem);
+  letter-spacing: -0.05em;
+  font-weight: 800;
+}
+
+.login-brand p {
+  margin: 18px 0 0;
+  line-height: 1.7;
+  max-width: 330px;
+  opacity: 0.92;
+  font-size: 0.95rem;
+}
+
+.book-list {
+  margin-top: 36px;
+  display: grid;
+  gap: 16px;
+}
+
+.book-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  align-items: center;
+}
+
+.book-dot {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.book-card strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.book-card span {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  display: block;
+}
+
+.login-form {
+  padding: 48px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+}
+
+.login-form h2 {
+  margin: 0 0 6px 0;
+  font-size: clamp(1.8rem, 2vw, 2.2rem);
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.login-form p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.actions .remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.actions .remember input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-light);
+}
+
+.actions a,
+.hint a {
+  color: var(--primary-light);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.actions a:hover,
+.hint a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.hint {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.link-btn {
+  border: none;
+  background: transparent;
+  color: var(--primary-light);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+  color: var(--primary);
+}
+
+.footer-note {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 840px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 520px) {
+  .login-brand,
+  .login-form {
+    padding: 32px 24px;
+  }
+
+  .login-brand h1 {
+    font-size: 2rem;
+  }
+}

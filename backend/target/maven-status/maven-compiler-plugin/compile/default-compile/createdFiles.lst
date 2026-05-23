@@ -1,7 +1,12 @@
+com\bookstore\model\OrderItem.class
+com\bookstore\controller\BookController.class
+com\bookstore\model\RegisterRequest.class
+com\bookstore\model\ShippingInfo.class
 com\bookstore\model\User.class
 com\bookstore\model\LoginRequest.class
 com\bookstore\model\Book.class
 com\bookstore\BookstoreApplication.class
+com\bookstore\controller\OrderController.class
 com\bookstore\controller\AuthController.class
-com\bookstore\controller\BookController.class
-com\bookstore\model\RegisterRequest.class
+com\bookstore\model\Review.class
+com\bookstore\model\Order.class

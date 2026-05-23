@@ -1,0 +1,106 @@
+.faq-container {
+  max-width: 900px;
+  margin: 32px auto;
+  padding: 0 24px;
+  animation: fadeIn 0.3s ease;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0 32px;
+}
+
+.faq-item {
+  background: var(--card);
+  border: 1px solid var(--border-dark);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.faq-question {
+  width: 100%;
+  padding: 20px 24px;
+  background: var(--card);
+  border: none;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  font-family: var(--font-heading);
+}
+
+.faq-question:hover {
+  background: var(--bg);
+  color: var(--primary);
+}
+
+.faq-question.active {
+  background: rgba(59, 130, 246, 0.04);
+  color: var(--primary);
+  border-bottom: 1px solid var(--border-dark);
+}
+
+.faq-icon {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--primary-light);
+  flex-shrink: 0;
+}
+
+.faq-answer {
+  padding: 20px 24px;
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  animation: slideDown 0.2s ease;
+}
+
+.faq-answer p {
+  margin: 0;
+}
+
+.faq-contact-cta {
+  text-align: center;
+  background: rgba(59, 130, 246, 0.03);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  padding: 32px 24px;
+  border-radius: 20px;
+}
+
+.faq-contact-cta h3 {
+  font-size: 1.3rem;
+  margin: 0 0 8px;
+  color: var(--text-main);
+}
+
+.faq-contact-cta p {
+  color: var(--text-muted);
+  margin: 0 0 16px;
+}
+
+.cta-btn {
+  padding: 12px 28px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 15px rgba(30, 58, 138, 0.15);
+}
+
+.cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(30, 58, 138, 0.25);
+}
