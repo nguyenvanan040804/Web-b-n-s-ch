@@ -1,251 +1,190 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Admin.css';
+import { Ic, ICONS } from './AdminIcons';
+import Dashboard from './Dashboard/Dashboard';
+import Books     from './Books/Books';
+import Orders    from './Orders/Orders';
+import AddBook   from './AddBook/AddBook';
 
+/** Tab definitions */
+const TABS = [
+  { id: 'dashboard', label: 'Tổng quan',         icon: 'dashboard' },
+  { id: 'books',     label: 'Quản lý Sách',       icon: 'books'     },
+  { id: 'orders',    label: 'Quản lý Đơn hàng',   icon: 'orders'    },
+  { id: 'add-book',  label: 'Thêm Sách mới',       icon: 'addBook'   },
+];
+
+/**
+ * Admin — Layout chính (sidebar + topbar)
+ * Nội dung từng tab được tách riêng vào:
+ *   Dashboard, Books, Orders, AddBook
+ */
 export default function Admin({ app }) {
-  const { adminTab, setAdminTab, orders, handleUpdateOrderStatus, newBook, setNewBook, handleCreateBook, adminMessage } = app;
+  const {
+    adminTab, setAdminTab,
+    orders, handleUpdateOrderStatus,
+    newBook, setNewBook, handleCreateBook, adminMessage,
+    books, handleDeleteBook,
+    user, handleLogout, switchPage,
+  } = app;
 
-  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
-  const pendingOrders = orders.filter(o => o.status === 'Chờ chuẩn bị hàng').length;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  /* Badge: số đơn đang chờ chuẩn bị (hiện trên sidebar) */
+  const pendingCount = orders.filter(o => o.status === 'Chờ chuẩn bị hàng').length;
+
+  const currentTab  = TABS.find(t => t.id === adminTab);
+  const userInitial = user?.name?.split(' ').pop()?.[0]?.toUpperCase() || 'A';
+  const today = new Date().toLocaleDateString('vi-VN', {
+    weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric'
+  });
 
   return (
-    <main className="admin-container">
-      <div className="panel-header-simple">
-        <h2>Bảng Quản trị Hệ thống</h2>
-        <p>Kiểm duyệt đơn hàng của khách hàng và đăng tải thêm đầu sách mới lên kệ.</p>
-      </div>
+    <div className={`adm-layout${mobileMenuOpen ? ' mobile-open' : ''}`}>
 
-      {/* Analytics Widgets */}
-      <div className="admin-stats-grid">
-        <div className="admin-stat-card">
-          <div className="stat-card-icon revenue-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path fill="currentColor" d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-            </svg>
-          </div>
-          <div className="stat-card-info">
-            <span>Tổng doanh số</span>
-            <strong>{(totalRevenue).toLocaleString('vi-VN')} đ</strong>
-          </div>
-        </div>
-
-        <div className="admin-stat-card">
-          <div className="stat-card-icon orders-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-            </svg>
-          </div>
-          <div className="stat-card-info">
-            <span>Tổng đơn hàng</span>
-            <strong>{orders.length} đơn</strong>
-          </div>
-        </div>
-
-        <div className="admin-stat-card">
-          <div className="stat-card-icon pending-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-.5-13h1v6l5.25 3.15-.75 1.23L11.5 12.5V7z"/>
-            </svg>
-          </div>
-          <div className="stat-card-info">
-            <span>Chờ chuẩn bị hàng</span>
-            <strong>{pendingOrders} đơn</strong>
-          </div>
-        </div>
-      </div>
-
-      {/* Sub tabs nav */}
-      <div className="admin-nav-tabs">
-        <button 
-          className={`admin-tab-btn ${adminTab === 'orders' ? 'active' : ''}`}
-          onClick={() => setAdminTab('orders')}
-        >
-          Quản lý Đơn hàng ({orders.length})
-        </button>
-        <button 
-          className={`admin-tab-btn ${adminTab === 'add-book' ? 'active' : ''}`}
-          onClick={() => setAdminTab('add-book')}
-        >
-          Thêm Sách mới
-        </button>
-      </div>
-
-      {adminTab === 'orders' && (
-        <section className="admin-orders-section">
-          <h3>Danh sách Đơn hàng của Hệ thống</h3>
-          {orders.length > 0 ? (
-            <div className="admin-table-wrapper">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Mã đơn</th>
-                    <th>Khách hàng</th>
-                    <th>Tổng tiền</th>
-                    <th>Thời gian</th>
-                    <th>Trạng thái hiện tại</th>
-                    <th>Hành động thay đổi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((ord) => (
-                    <tr key={ord.id}>
-                      <td><strong>{ord.id}</strong></td>
-                      <td>
-                        <div><strong>{ord.shippingInfo.name}</strong></div>
-                        <div style={{ fontSize: '0.8rem', color: '#667085' }}>{ord.shippingInfo.phone}</div>
-                      </td>
-                      <td><strong>{(ord.total + (ord.total >= 300000 ? 0 : 30000)).toLocaleString('vi-VN')} đ</strong></td>
-                      <td>{ord.date.split(' vào ')[0] || ord.date}</td>
-                      <td>
-                        <span className={`admin-status-lbl status-${ord.status.replace(/\s+/g, '-').toLowerCase()}`}>
-                          {ord.status}
-                        </span>
-                      </td>
-                      <td>
-                        <select 
-                          className="admin-status-select"
-                          value={ord.status}
-                          onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value)}
-                        >
-                          <option value="Chờ chuẩn bị hàng">Chờ chuẩn bị hàng</option>
-                          <option value="Đang giao hàng">Đang giao hàng</option>
-                          <option value="Đã giao thành công">Đã giao thành công</option>
-                          <option value="Đã hủy đơn">Hủy đơn hàng</option>
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="empty-state">
-              <p>Hiện chưa có đơn đặt hàng nào trong hệ thống.</p>
-            </div>
-          )}
-        </section>
+      {/* =========================================================
+          OVERLAY (mobile)
+          ========================================================= */}
+      {mobileMenuOpen && (
+        <div className="adm-overlay" onClick={() => setMobileMenuOpen(false)} />
       )}
 
-      {adminTab === 'add-book' && (
-        <section className="admin-add-book-section">
-          <h3>Đăng tải đầu sách mới lên Cửa hàng</h3>
-          <p className="admin-add-book-p">Điền đầy đủ thông số dưới đây. Sách mới sẽ xuất hiện trực tiếp ngay đầu trang Cửa hàng để bạn thêm vào giỏ hàng.</p>
-          
-          <form className="add-book-form-grid" onSubmit={handleCreateBook}>
-            <div className="form-group">
-              <label htmlFor="new-title">Tiêu đề sách *</label>
-              <input 
-                id="new-title"
-                type="text" 
-                required
-                placeholder="Ví dụ: Đọc vị bất kỳ ai"
-                value={newBook.title}
-                onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
-              />
-            </div>
+      {/* =========================================================
+          SIDEBAR
+          ========================================================= */}
+      <aside className="adm-sidebar">
 
-            <div className="form-group">
-              <label htmlFor="new-author">Tác giả *</label>
-              <input 
-                id="new-author"
-                type="text" 
-                required
-                placeholder="Ví dụ: David J. Lieberman"
-                value={newBook.author}
-                onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
-              />
-            </div>
+        {/* Brand */}
+        <div className="adm-brand">
+          <div className="adm-brand-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M12 11.55C9.64 9.35 6.48 8 3 8v11c3.48 0 6.64 1.35 9 3.55 2.36-2.2 5.52-3.55 9-3.55V8c-3.48 0-6.64 1.35-9 3.55zM12 8c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3z"/>
+            </svg>
+          </div>
+          <div className="adm-brand-text">
+            <strong>BookStore</strong>
+            <span>Admin Panel</span>
+          </div>
+        </div>
 
-            <div className="form-group">
-              <label htmlFor="new-cat">Thể loại sách</label>
-              <select 
-                id="new-cat"
-                className="admin-select-field"
-                value={newBook.category}
-                onChange={(e) => setNewBook({ ...newBook, category: e.target.value })}
-              >
-                <option value="Tiểu thuyết">Tiểu thuyết</option>
-                <option value="Kỹ năng">Kỹ năng</option>
-                <option value="Kinh tế">Kinh tế</option>
-                <option value="Thiếu nhi">Thiếu nhi</option>
-                <option value="Khoa học">Khoa học</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="new-price">Giá tiền (VND) *</label>
-              <input 
-                id="new-price"
-                type="number" 
-                required
-                placeholder="Ví dụ: 89000"
-                value={newBook.price}
-                onChange={(e) => setNewBook({ ...newBook, price: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="new-cover">Địa chỉ URL ảnh bìa</label>
-              <input 
-                id="new-cover"
-                type="text" 
-                placeholder="Bỏ trống sẽ tự động lấy ảnh Unsplash mặc định"
-                value={newBook.coverUrl}
-                onChange={(e) => setNewBook({ ...newBook, coverUrl: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="new-pub">Nhà xuất bản</label>
-              <input 
-                id="new-pub"
-                type="text" 
-                placeholder="Ví dụ: NXB Trẻ"
-                value={newBook.publisher}
-                onChange={(e) => setNewBook({ ...newBook, publisher: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="new-pages">Số trang</label>
-              <input 
-                id="new-pages"
-                type="number" 
-                placeholder="Ví dụ: 250"
-                value={newBook.pages}
-                onChange={(e) => setNewBook({ ...newBook, pages: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="new-year">Năm xuất bản</label>
-              <input 
-                id="new-year"
-                type="number" 
-                placeholder="Ví dụ: 2023"
-                value={newBook.year}
-                onChange={(e) => setNewBook({ ...newBook, year: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group full-width-field">
-              <label htmlFor="new-desc">Mô tả tóm tắt sách</label>
-              <textarea 
-                id="new-desc"
-                rows="4"
-                placeholder="Nhập mô tả tóm tắt nội dung chính để khách hàng nắm bắt được trước khi đặt..."
-                value={newBook.description}
-                onChange={(e) => setNewBook({ ...newBook, description: e.target.value })}
-              ></textarea>
-            </div>
-
-            <button type="submit" className="submit-btn full-width-field">
-              Lưu và Đăng lên cửa hàng
+        {/* Main nav */}
+        <div className="adm-section-label">MENU CHÍNH</div>
+        <nav className="adm-nav">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              className={`adm-nav-item ${adminTab === tab.id ? 'active' : ''}`}
+              onClick={() => { setAdminTab(tab.id); setMobileMenuOpen(false); }}
+            >
+              <span className="adm-nav-icon"><Ic path={ICONS[tab.icon]} /></span>
+              <span className="adm-nav-label">{tab.label}</span>
+              {tab.id === 'orders' && pendingCount > 0 && (
+                <span className="adm-nav-badge">{pendingCount}</span>
+              )}
             </button>
-          </form>
+          ))}
+        </nav>
 
-          {adminMessage && <div className="message-box admin-msg-box">{adminMessage}</div>}
-        </section>
-      )}
-    </main>
+        <div className="adm-sidebar-divider" />
+
+        {/* Secondary nav */}
+        <div className="adm-section-label">KHÁC</div>
+        <nav className="adm-nav">
+          <button className="adm-nav-item store-btn" onClick={() => switchPage('store')}>
+            <span className="adm-nav-icon"><Ic path={ICONS.store} /></span>
+            <span className="adm-nav-label">Về cửa hàng</span>
+            <span className="adm-ext-icon">↗</span>
+          </button>
+        </nav>
+
+        {/* User footer */}
+        <div className="adm-sidebar-footer">
+          <div className="adm-user-card">
+            <div className="adm-user-avatar">{userInitial}</div>
+            <div className="adm-user-info">
+              <strong>{user?.name}</strong>
+              <span>Administrator</span>
+            </div>
+            <button
+              className="adm-logout-btn"
+              onClick={handleLogout}
+              title="Đăng xuất"
+            >
+              <Ic path={ICONS.logout} size={16} />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* =========================================================
+          MAIN CONTENT AREA
+          ========================================================= */}
+      <div className="adm-main">
+
+        {/* Top Bar */}
+        <header className="adm-topbar">
+          <div className="adm-topbar-left">
+            <button
+              className="adm-menu-toggle"
+              onClick={() => setMobileMenuOpen(prev => !prev)}
+              aria-label="Toggle menu"
+            >
+              <Ic path={ICONS.menu} size={22} />
+            </button>
+            <div>
+              <h2 className="adm-page-title">{currentTab?.label}</h2>
+              <p className="adm-breadcrumb">
+                <span>Admin Dashboard</span>
+                <span className="adm-crumb-sep">/</span>
+                <span>{currentTab?.label}</span>
+              </p>
+            </div>
+          </div>
+          <div className="adm-topbar-right">
+            <div className="adm-topbar-date">{today}</div>
+            <div className="adm-topbar-pills">
+              <span className="adm-pill">{orders.length} đơn</span>
+              <span className="adm-pill books-pill">{books.length} sách</span>
+            </div>
+            <div className="adm-topbar-avatar">{userInitial}</div>
+          </div>
+        </header>
+
+        {/* Scrollable content area */}
+        <div className="adm-content">
+          {adminTab === 'dashboard' && (
+            <Dashboard
+              orders={orders}
+              books={books}
+              setAdminTab={setAdminTab}
+            />
+          )}
+
+          {adminTab === 'books' && (
+            <Books
+              books={books}
+              handleDeleteBook={handleDeleteBook}
+              setAdminTab={setAdminTab}
+            />
+          )}
+
+          {adminTab === 'orders' && (
+            <Orders
+              orders={orders}
+              handleUpdateOrderStatus={handleUpdateOrderStatus}
+            />
+          )}
+
+          {adminTab === 'add-book' && (
+            <AddBook
+              newBook={newBook}
+              setNewBook={setNewBook}
+              handleCreateBook={handleCreateBook}
+              adminMessage={adminMessage}
+            />
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
