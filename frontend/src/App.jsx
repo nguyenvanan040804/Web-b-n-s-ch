@@ -240,7 +240,7 @@ function App() {
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [contactMessage, setContactMessage] = useState('');
 
-  const [adminTab, setAdminTab] = useState('orders');
+  const [adminTab, setAdminTab] = useState('dashboard');
   const [newBook, setNewBook] = useState({ title: '', author: '', category: 'Kỹ năng', price: '', coverUrl: '', description: '', publisher: '', pages: '', year: '' });
   const [adminMessage, setAdminMessage] = useState('');
 
@@ -657,6 +657,20 @@ function App() {
     }
   }
 
+  async function handleDeleteBook(bookId) {
+    try {
+      const res = await fetch(`/api/books/${bookId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setBooks(prev => prev.filter(b => b.id !== bookId));
+      } else {
+        alert('Lỗi khi xóa sách khỏi hệ thống.');
+      }
+    } catch (err) {
+      console.error("Lỗi xóa sách:", err);
+      alert('Không thể kết nối đến máy chủ.');
+    }
+  }
+
   const app = {
     page,
     setPage,
@@ -720,6 +734,7 @@ function App() {
     handleContactSubmit,
     handleUpdateOrderStatus,
     handleCreateBook,
+    handleDeleteBook,
     cartCount,
     cartTotal,
     filteredBooks,
@@ -741,6 +756,11 @@ function App() {
     isUserDropdownOpen,
     setIsUserDropdownOpen
   };
+
+  // Admin dashboard: render standalone full-page layout (no user navbar/footer)
+  if (page === 'admin' && user?.role === 'admin') {
+    return <Admin app={app} />;
+  }
 
   return (
     <div className="store-container">
@@ -857,7 +877,6 @@ function App() {
         {page === 'privacy' && <PrivacyPolicy />}
         {page === 'terms' && <TermsOfService />}
         {(page === 'login' || page === 'register') && <LoginRegister app={app} />}
-        {page === 'admin' && user?.role === 'admin' && <Admin app={app} />}
       </div>
 
       <Footer />
