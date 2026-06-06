@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Store from './pages/Store/Store';
 import LoginRegister from './pages/LoginRegister/LoginRegister';
 import About from './pages/About/About';
@@ -205,8 +207,18 @@ function App() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [remember, setRemember] = useState(false);
-  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const message = '';
+  const setMessage = (msg) => {
+    if (!msg) return;
+    const lowerMsg = msg.toLowerCase();
+    if (lowerMsg.includes('thành công') || lowerMsg.includes('đã đăng xuất') || lowerMsg.includes('cảm ơn') || lowerMsg.includes('đã gửi')) {
+      toast.success(msg);
+    } else {
+      toast.error(msg);
+    }
+  };
 
   const [books, setBooks] = useState(DEFAULT_BOOKS);
   const [cart, setCart] = useState([]);
@@ -222,7 +234,16 @@ function App() {
   const [selectedBook, setSelectedBook] = useState(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
-  const [reviewMessage, setReviewMessage] = useState('');
+  
+  const reviewMessage = '';
+  const setReviewMessage = (msg) => {
+    if (!msg) return;
+    if (msg.toLowerCase().includes('thành công')) {
+      toast.success(msg);
+    } else {
+      toast.error(msg);
+    }
+  };
 
   // Checkout and Mock Payment state
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -239,11 +260,29 @@ function App() {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
-  const [contactMessage, setContactMessage] = useState('');
+  
+  const contactMessage = '';
+  const setContactMessage = (msg) => {
+    if (!msg) return;
+    toast.success(msg);
+  };
+
+  // OTP Verification
+  const [verifyOtpEmail, setVerifyOtpEmail] = useState(null);
+  const [otpCode, setOtpCode] = useState('');
 
   const [adminTab, setAdminTab] = useState('dashboard');
   const [newBook, setNewBook] = useState({ title: '', author: '', category: 'Kỹ năng', price: '', coverUrl: '', description: '', publisher: '', pages: '', year: '' });
-  const [adminMessage, setAdminMessage] = useState('');
+  
+  const adminMessage = '';
+  const setAdminMessage = (msg) => {
+    if (!msg) return;
+    if (msg.toLowerCase().includes('thành công')) {
+      toast.success(msg);
+    } else {
+      toast.error(msg);
+    }
+  };
 
   // Derived values
   const cartCount = cart.reduce((s, it) => s + (it.quantity || 0), 0);
@@ -340,6 +379,67 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
+  async function handleGoogleLogin(token) {
+    setLoading(true);
+    setMessage('');
+    try {
+      const res = await fetch('/api/auth/google-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setUser({ name: data.name, email: data.email, role: data.role, phone: data.phone, address: data.address });
+        setCheckoutInfo({
+          name: data.name,
+          phone: data.phone || '',
+          address: data.address || '',
+          note: '',
+          paymentMethod: 'COD'
+        });
+        setMessage(data.message || 'Đăng nhập Google thành công');
+        if (data.role === 'admin') {
+          switchPage('admin');
+        } else {
+          switchPage('store');
+        }
+      } else {
+        setMessage(data.message || 'Lỗi đăng nhập Google');
+      }
+    } catch (err) {
+      console.error("Lỗi đăng nhập Google:", err);
+      setMessage('Không thể kết nối đến máy chủ.');
+    }
+    setLoading(false);
+  }
+
+  async function handleVerifyOtp(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    setLoading(true);
+    setMessage('');
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: verifyOtpEmail, otp: otpCode })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setMessage(data.message);
+        setVerifyOtpEmail(null);
+        setOtpCode('');
+        setPage('login'); // switch to login after verification
+      } else {
+        setMessage(data.message || 'Lỗi xác minh OTP');
+      }
+    } catch (err) {
+      console.error("Lỗi xác minh OTP:", err);
+      setMessage('Không thể kết nối đến máy chủ.');
+    }
+    setLoading(false);
+  }
+
   async function handleLogin(e) {
     if (e && e.preventDefault) e.preventDefault();
     setLoading(true);
@@ -351,7 +451,10 @@ function App() {
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (!res.ok && data.needsVerification) {
+        setMessage(data.message);
+        setVerifyOtpEmail(data.email);
+      } else if (res.ok && data.success) {
         setUser({ name: data.name, email: data.email, role: data.role, phone: data.phone, address: data.address });
         setCheckoutInfo({
           name: data.name,
@@ -381,7 +484,7 @@ function App() {
     setLoading(true);
     setMessage('');
     if (password !== confirmPassword) {
-      setMessage('Mật khẩu xác nhận không khớp');
+      setMessage('Mật khẩu xác nhận không trùng khớp. Vui lòng gõ lại.');
       setLoading(false);
       return;
     }
@@ -392,17 +495,25 @@ function App() {
         body: JSON.stringify({ name, email, password })
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        setUser({ name: data.name, email: data.email, role: data.role, phone: '', address: '' });
-        setCheckoutInfo({
-          name: data.name,
-          phone: '',
-          address: '',
-          note: '',
-          paymentMethod: 'COD'
-        });
-        setMessage(data.message || 'Đăng ký thành công');
-        switchPage('store');
+      if (!res.ok && data.needsVerification) {
+        setMessage(data.message);
+        setVerifyOtpEmail(data.email);
+      } else if (res.ok && data.success) {
+        if (data.needsVerification) {
+            setMessage(data.message);
+            setVerifyOtpEmail(data.email);
+        } else {
+            setUser({ name: data.name, email: data.email, role: data.role, phone: '', address: '' });
+            setCheckoutInfo({
+              name: data.name,
+              phone: '',
+              address: '',
+              note: '',
+              paymentMethod: 'COD'
+            });
+            setMessage(data.message || 'Đăng ký thành công');
+            switchPage('store');
+        }
       } else {
         setMessage(data.message || 'Lỗi đăng ký tài khoản.');
       }
@@ -753,9 +864,15 @@ function App() {
     setReviewRating,
     reviewComment,
     setReviewComment,
-    reviewMessage,
+    setReviewMessage,
     isUserDropdownOpen,
-    setIsUserDropdownOpen
+    setIsUserDropdownOpen,
+    verifyOtpEmail,
+    setVerifyOtpEmail,
+    otpCode,
+    setOtpCode,
+    handleVerifyOtp,
+    handleGoogleLogin
   };
 
   // Admin dashboard: render standalone full-page layout (no user navbar/footer)
@@ -765,6 +882,7 @@ function App() {
 
   return (
     <div className="store-container">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover theme="light" />
       <header className="navbar">
         <div className="nav-brand" onClick={() => switchPage('store')}>
           <svg className="brand-logo-svg" viewBox="0 0 24 24" width="28" height="28">
@@ -866,7 +984,14 @@ function App() {
         </div>
       </header>
 
-      <div className="page-wrapper">
+      <div className="page-wrapper" style={(page === 'login' || page === 'register') ? { 
+        padding: '20px 10px', 
+        minHeight: 'calc(100vh - 90px)',
+        boxSizing: 'border-box',
+        display: 'flex', 
+        alignItems: 'center',
+        justifyContent: 'center'
+      } : {}}>
         {page === 'store' && <Store app={app} />}
         {page === 'bestsellers' && <Bestsellers app={app} />}
         {page === 'about' && <About />}
@@ -881,7 +1006,7 @@ function App() {
        {page === 'forgot-password' && <ForgotPassword app={app} />}
       </div>
 
-      <Footer />
+      {page !== 'login' && page !== 'register' && <Footer />}
 
       {/* Chi tiết sách Modal */}
       {selectedBook && (
