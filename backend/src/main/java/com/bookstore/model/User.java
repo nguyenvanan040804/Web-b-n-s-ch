@@ -1,7 +1,18 @@
 package com.bookstore.model;
-// fixed BOM
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "users")
 public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String name;
     private String email;
@@ -10,10 +21,15 @@ public class User {
     private String phone;
     private String address;
 
+    private boolean isVerified;
+    private String authProvider; // LOCAL or GOOGLE
+
     public User() {
         this.role = "user";
         this.phone = "";
         this.address = "";
+        this.isVerified = false;
+        this.authProvider = "LOCAL";
     }
 
     public User(String name, String email, String password) {
@@ -23,6 +39,8 @@ public class User {
         this.role = "user";
         this.phone = "";
         this.address = "";
+        this.isVerified = false;
+        this.authProvider = "LOCAL";
     }
 
     public User(String name, String email, String password, String role) {
@@ -32,6 +50,8 @@ public class User {
         this.role = role == null ? "user" : role;
         this.phone = "";
         this.address = "";
+        this.isVerified = false;
+        this.authProvider = "LOCAL";
     }
 
     public User(String name, String email, String password, String role, String phone, String address) {
@@ -41,6 +61,16 @@ public class User {
         this.role = role == null ? "user" : role;
         this.phone = phone;
         this.address = address;
+        this.isVerified = true; // existing users or seeders assumed verified
+        this.authProvider = "LOCAL";
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -89,5 +119,21 @@ public class User {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(boolean verified) {
+        isVerified = verified;
+    }
+
+    public String getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(String authProvider) {
+        this.authProvider = authProvider;
     }
 }

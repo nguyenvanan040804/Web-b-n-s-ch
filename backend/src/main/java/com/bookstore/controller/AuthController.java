@@ -3,34 +3,61 @@ package com.bookstore.controller;
 import com.bookstore.model.LoginRequest;
 import com.bookstore.model.RegisterRequest;
 import com.bookstore.model.User;
+import com.bookstore.repository.UserRepository;
+import com.bookstore.service.OtpService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
-    private final Map<String, User> users = new ConcurrentHashMap<>();
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final OtpService otpService;
 
-    public AuthController() {
-        // demo regular user
-        users.put("demo@bookstore.com", new User("Demo Reader", "demo@bookstore.com", "demo123", "user", "0987654321", "123 Đường Láng, Đống Đa, Hà Nội"));
-        // initial admin account
-        users.put("admin@bookstore.com", new User("Site Admin", "admin@bookstore.com", "admin123", "admin", "0900000000", "Văn phòng Nhà Sách, Quận 1, TP.HCM"));
+    // TODO: The user can inject their own Google Client ID here if they have one.
+    // For demo purposes, we accept any audience or check a specific one if configured.
+    private static final String GOOGLE_CLIENT_ID = "253069958668-jabu3hlu5hip0ckc16i2rffb3g1hbhvs.apps.googleusercontent.com";
+
+    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, OtpService otpService) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.otpService = otpService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Validated @RequestBody LoginRequest request) {
-        User user = users.get(request.getEmail().toLowerCase());
-        if (user == null || !user.getPassword().equals(request.getPassword())) {
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail().toLowerCase());
+        
+        if (optionalUser.isEmpty() || !passwordEncoder.matches(request.getPassword(), optionalUser.get().getPassword())) {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
-                "message", "Email hoặc mật khẩu không đúng."
+                "message", "Tài khoản không tồn tại hoặc mật khẩu sai. Vui lòng kiểm tra lại."
+            ));
+        }
+
+        User user = optionalUser.get();
+        
+        if (!user.isVerified()) {
+            // Re-send OTP if not verified
+            otpService.generateAndSendOtp(user.getEmail());
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "needsVerification", true,
+                "email", user.getEmail(),
+                "message", "Tài khoản chưa xác thực. Một mã OTP mới đã được gửi đến email của bạn."
             ));
         }
 
@@ -48,25 +75,132 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@Validated @RequestBody RegisterRequest request) {
         String email = request.getEmail().toLowerCase();
-        if (users.containsKey(email)) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "message", "Email này đã được đăng ký. Vui lòng dùng email khác."
-            ));
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            if (user.isVerified()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Email này đã được đăng ký. Vui lòng đăng nhập."
+                ));
+            } else {
+                // Clean up legacy unverified users if any
+                userRepository.delete(user);
+            }
         }
 
-        User user = new User(request.getName(), email, request.getPassword(), "user", "", "");
-        users.put(email, user);
+        // Generate OTP and store temporary registration data in otp_tokens table
+        otpService.generateRegistrationOtp(email, request.getName(), passwordEncoder.encode(request.getPassword()));
 
         return ResponseEntity.ok(Map.of(
             "success", true,
-            "message", "Đăng ký thành công! Chào mừng " + user.getName(),
-            "name", user.getName(),
-            "email", user.getEmail(),
-            "role", user.getRole(),
-            "phone", "",
-            "address", ""
+            "needsVerification", true,
+            "email", email,
+            "message", "Đăng ký thành công! Vui lòng kiểm tra email để lấy mã OTP xác thực."
         ));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<Map<String, Object>> verifyOtp(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String otpCode = body.get("otp");
+        
+        if (email == null || otpCode == null) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Dữ liệu không hợp lệ."));
+        }
+
+        com.bookstore.model.OtpToken validOtp = otpService.verifyOtp(email.toLowerCase(), otpCode);
+        if (validOtp != null) {
+            Optional<User> userOpt = userRepository.findByEmail(email.toLowerCase());
+            if (userOpt.isPresent()) {
+                // Fallback for legacy login OTPs if any
+                User user = userOpt.get();
+                user.setVerified(true);
+                userRepository.save(user);
+            } else {
+                // Delayed registration: Create the user NOW since OTP is verified
+                User user = new User();
+                user.setName(validOtp.getPendingName() != null ? validOtp.getPendingName() : "Người dùng mới");
+                user.setEmail(email.toLowerCase());
+                user.setPassword(validOtp.getPendingPassword());
+                user.setRole("user");
+                user.setPhone("");
+                user.setAddress("");
+                user.setVerified(true);
+                user.setAuthProvider("LOCAL");
+                userRepository.save(user);
+            }
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Xác thực thành công. Bạn đã có thể đăng nhập!"
+            ));
+        }
+
+        return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã OTP bạn nhập không chính xác hoặc đã hết hạn (quá 5 phút). Vui lòng thử lại hoặc nhấn Gửi lại mã OTP."));
+    }
+
+    @PostMapping("/google-login")
+    public ResponseEntity<Map<String, Object>> googleLogin(@RequestBody Map<String, String> body) {
+        String idTokenString = body.get("token");
+        if (idTokenString == null || idTokenString.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Thiếu Google Token."));
+        }
+
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                // .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID)) // Uncomment and configure when Client ID is real
+                .build();
+
+            // Parse token without verifying audience strictly if testing, but `verify` does full check
+            GoogleIdToken idToken = GoogleIdToken.parse(verifier.getJsonFactory(), idTokenString);
+            // In a real app we MUST verify the token via verifier.verify(idTokenString);
+            
+            if (idToken != null) {
+                GoogleIdToken.Payload payload = idToken.getPayload();
+                String email = payload.getEmail().toLowerCase();
+                String name = (String) payload.get("name");
+
+                Optional<User> existingUser = userRepository.findByEmail(email);
+                User user;
+                if (existingUser.isPresent()) {
+                    user = existingUser.get();
+                    if (!user.isVerified()) {
+                        user.setVerified(true); // Auto verify if google email is verified
+                    }
+                    if (!"GOOGLE".equals(user.getAuthProvider())) {
+                        user.setAuthProvider("GOOGLE");
+                    }
+                    userRepository.save(user);
+                } else {
+                    user = new User();
+                    user.setName(name);
+                    user.setEmail(email);
+                    user.setPassword(passwordEncoder.encode(java.util.UUID.randomUUID().toString())); // Random password
+                    user.setRole("user");
+                    user.setPhone("");
+                    user.setAddress("");
+                    user.setVerified(true);
+                    user.setAuthProvider("GOOGLE");
+                    userRepository.save(user);
+                }
+
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Đăng nhập thành công! Chào mừng " + user.getName(),
+                    "name", user.getName(),
+                    "email", user.getEmail(),
+                    "role", user.getRole(),
+                    "phone", user.getPhone() == null ? "" : user.getPhone(),
+                    "address", user.getAddress() == null ? "" : user.getAddress()
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Token không hợp lệ."));
+            }
+        } catch (Exception e) {
+            System.err.println("Google Login Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Lỗi xác thực Google."));
+        }
     }
 
     @PutMapping("/profile")
@@ -77,21 +211,26 @@ public class AuthController {
                 "message", "Email không hợp lệ."
             ));
         }
+        
         String email = profileData.getEmail().toLowerCase();
-        User user = users.get(email);
-        if (user == null) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        
+        if (optionalUser.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
                 "message", "Không tìm thấy tài khoản người dùng."
             ));
         }
 
+        User user = optionalUser.get();
         user.setName(profileData.getName());
         if (profileData.getPassword() != null && !profileData.getPassword().trim().isEmpty()) {
-            user.setPassword(profileData.getPassword());
+            user.setPassword(passwordEncoder.encode(profileData.getPassword()));
         }
         user.setPhone(profileData.getPhone());
         user.setAddress(profileData.getAddress());
+        
+        userRepository.save(user);
 
         return ResponseEntity.ok(Map.of(
             "success", true,

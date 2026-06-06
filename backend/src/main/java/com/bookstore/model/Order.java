@@ -1,13 +1,26 @@
 package com.bookstore.model;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import java.util.List;
 
+@Entity
+@Table(name = "orders")
 public class Order {
+    @Id
     private String id;
     private String date;
     private String userEmail;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items;
     private double total;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "shipping_info_id", referencedColumnName = "id")
     private ShippingInfo shippingInfo;
     private String status;
     private String paymentStatus;
