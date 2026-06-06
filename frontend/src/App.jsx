@@ -12,6 +12,7 @@ import Footer from './pages/Footer/Footer';
 import Admin from './pages/Admin/Admin';
 import Cart from './pages/Cart/Cart';
 import Profile from './pages/Profile/Profile';
+import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 
 const DEFAULT_BOOKS = [
   {
@@ -877,6 +878,7 @@ function App() {
         {page === 'privacy' && <PrivacyPolicy />}
         {page === 'terms' && <TermsOfService />}
         {(page === 'login' || page === 'register') && <LoginRegister app={app} />}
+       {page === 'forgot-password' && <ForgotPassword app={app} />}
       </div>
 
       <Footer />

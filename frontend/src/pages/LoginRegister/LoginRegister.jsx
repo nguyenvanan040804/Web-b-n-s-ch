@@ -161,7 +161,13 @@ export default function LoginRegister({ app }) {
                   />
                   Nhớ đăng nhập
                 </label>
-                <a href="#">Quên mật khẩu?</a>
+                <button
+  type="button"
+  className="link-btn"
+  onClick={() => switchPage('forgot-password')}
+>
+  Quên mật khẩu?
+</button>
               </div>
             )}
 

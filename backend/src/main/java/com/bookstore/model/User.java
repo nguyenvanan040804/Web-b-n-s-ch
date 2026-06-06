@@ -1,46 +1,52 @@
 package com.bookstore.model;
-// fixed BOM
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "users")
 public class User {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String name;
+
     private String email;
+
     private String password;
+
     private String role;
+
     private String phone;
+
     private String address;
 
     public User() {
-        this.role = "user";
-        this.phone = "";
-        this.address = "";
     }
 
-    public User(String name, String email, String password) {
+    public User(
+            String name,
+            String email,
+            String password,
+            String role,
+            String phone,
+            String address
+    ) {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.role = "user";
-        this.phone = "";
-        this.address = "";
-    }
-
-    public User(String name, String email, String password, String role) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.role = role == null ? "user" : role;
-        this.phone = "";
-        this.address = "";
-    }
-
-    public User(String name, String email, String password, String role, String phone, String address) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.role = role == null ? "user" : role;
+        this.role = role;
         this.phone = phone;
         this.address = address;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
