@@ -147,25 +147,27 @@ export default function LoginRegister({ app }) {
           <section className="login-form">
             <div>
               <h2>{page === 'login' ? 'Đăng nhập tài khoản' : 'Tạo tài khoản mới'}</h2>
-              <p>{page === 'login' ? 'Nhập email và mật khẩu của bạn để truy cập vào hệ thống bán sách trực tuyến.' : 'Hoàn tất các thông tin sau để đăng ký tài khoản Nhà Sách.'}</p>
             </div>
 
-            <div style={{ marginTop: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
-              <GoogleLogin
-                onSuccess={(credentialResponse) => {
-                  handleGoogleLogin(credentialResponse.credential);
-                }}
-                onError={() => {
-                  console.error('Đăng nhập Google thất bại');
-                }}
-                text={page === 'login' ? "signin_with" : "signup_with"}
-              />
-            </div>
-            
-            <div className="divider" style={{ textAlign: 'center', margin: '16px 0', color: '#888', fontSize: '0.9rem', position: 'relative' }}>
-              <span style={{ background: '#fff', padding: '0 10px', position: 'relative', zIndex: 1 }}>HOẶC BẰNG EMAIL</span>
-              <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderTop: '1px solid #ddd', zIndex: 0 }}></div>
-            </div>
+            {page === 'login' && (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
+                  <GoogleLogin
+                    onSuccess={(credentialResponse) => {
+                      handleGoogleLogin(credentialResponse.credential);
+                    }}
+                    onError={() => {
+                      console.error('Đăng nhập Google thất bại');
+                    }}
+                    text="signin_with"
+                  />
+                </div>
+                <div className="divider" style={{ textAlign: 'center', color: '#888', fontSize: '0.9rem', position: 'relative', margin: '16px 0' }}>
+                  <span style={{ background: '#fff', padding: '0 10px', position: 'relative', zIndex: 1 }}>HOẶC BẰNG EMAIL</span>
+                  <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderTop: '1px solid #ddd', zIndex: 0 }}></div>
+                </div>
+              </>
+            )}
 
             <form onSubmit={page === 'login' ? handleLogin : handleRegister}>
               {page === 'register' && (
@@ -279,7 +281,6 @@ export default function LoginRegister({ app }) {
               )}
             </div>
 
-            <p className="footer-note">Chúng tôi cam kết bảo mật thông tin cá nhân và hỗ trợ bạn mọi lúc.</p>
           </section>
         </div>
       </div>
