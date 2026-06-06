@@ -983,7 +983,14 @@ function App() {
         </div>
       </header>
 
-      <div className="page-wrapper">
+      <div className="page-wrapper" style={(page === 'login' || page === 'register') ? { 
+        padding: '20px 10px', 
+        minHeight: 'calc(100vh - 90px)',
+        boxSizing: 'border-box',
+        display: 'flex', 
+        alignItems: 'center',
+        justifyContent: 'center'
+      } : {}}>
         {page === 'store' && <Store app={app} />}
         {page === 'bestsellers' && <Bestsellers app={app} />}
         {page === 'about' && <About />}
@@ -997,7 +1004,7 @@ function App() {
         {(page === 'login' || page === 'register') && <LoginRegister app={app} />}
       </div>
 
-      <Footer />
+      {page !== 'login' && page !== 'register' && <Footer />}
 
       {/* Chi tiết sách Modal */}
       {selectedBook && (
