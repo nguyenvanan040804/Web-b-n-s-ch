@@ -1,10 +1,12 @@
 package com.bookstore.model;
 
+import jakarta.persistence.*;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+ main
 
 @Entity
 @Table(name = "users")
@@ -15,10 +17,15 @@ public class User {
     private Long id;
 
     private String name;
+
     private String email;
+
     private String password;
+
     private String role;
+
     private String phone;
+
     private String address;
 
     private boolean isVerified;
@@ -30,12 +37,29 @@ public class User {
         this.address = "";
         this.isVerified = false;
         this.authProvider = "LOCAL";
+ main
     }
 
-    public User(String name, String email, String password) {
+    public User(
+            String name,
+            String email,
+            String password,
+            String role,
+            String phone,
+            String address
+    ) {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.role = role;
+        this.phone = phone;
+        this.address = address;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
         this.role = "user";
         this.phone = "";
         this.address = "";
@@ -69,6 +93,7 @@ public class User {
         return id;
     }
 
+ main
     public void setId(Long id) {
         this.id = id;
     }
@@ -120,6 +145,7 @@ public class User {
     public void setAddress(String address) {
         this.address = address;
     }
+}
 
     public boolean isVerified() {
         return isVerified;
@@ -137,3 +163,4 @@ public class User {
         this.authProvider = authProvider;
     }
 }
+ main

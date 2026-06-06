@@ -219,6 +219,25 @@ export default function LoginRegister({ app }) {
                 </div>
               </div>
 
+            {page === 'login' && (
+              <div className="actions">
+                <label className="remember">
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(event) => setRemember(event.target.checked)}
+                  />
+                  Nhớ đăng nhập
+                </label>
+                <button
+  type="button"
+  className="link-btn"
+  onClick={() => switchPage('forgot-password')}
+>
+  Quên mật khẩu?
+</button>
+              </div>
+            )}
               {page === 'register' && (
                 <div className="form-group">
                   <label htmlFor="confirmPassword">Xác nhận mật khẩu</label>
@@ -243,6 +262,7 @@ export default function LoginRegister({ app }) {
                   </div>
                 </div>
               )}
+main
 
               {page === 'login' && (
                 <div className="actions">
