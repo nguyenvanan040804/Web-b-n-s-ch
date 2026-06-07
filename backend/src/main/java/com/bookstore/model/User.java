@@ -23,6 +23,7 @@ public class User {
 
     private boolean isVerified;
     private String authProvider; // LOCAL or GOOGLE
+    private boolean isActive;
 
     public User() {
         this.role = "user";
@@ -30,6 +31,7 @@ public class User {
         this.address = "";
         this.isVerified = false;
         this.authProvider = "LOCAL";
+        this.isActive = true;
     }
 
     public User(String name, String email, String password) {
@@ -41,6 +43,7 @@ public class User {
         this.address = "";
         this.isVerified = false;
         this.authProvider = "LOCAL";
+        this.isActive = true;
     }
 
     public User(String name, String email, String password, String role) {
@@ -52,6 +55,7 @@ public class User {
         this.address = "";
         this.isVerified = false;
         this.authProvider = "LOCAL";
+        this.isActive = true;
     }
 
     public User(String name, String email, String password, String role, String phone, String address) {
@@ -63,6 +67,7 @@ public class User {
         this.address = address;
         this.isVerified = true; // existing users or seeders assumed verified
         this.authProvider = "LOCAL";
+        this.isActive = true;
     }
 
     public Long getId() {
@@ -135,5 +140,13 @@ public class User {
 
     public void setAuthProvider(String authProvider) {
         this.authProvider = authProvider;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }

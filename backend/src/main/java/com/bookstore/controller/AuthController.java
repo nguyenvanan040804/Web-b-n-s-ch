@@ -50,6 +50,13 @@ public class AuthController {
 
         User user = optionalUser.get();
         
+        if (!user.isActive()) {
+            return ResponseEntity.status(403).body(Map.of(
+                "success", false,
+                "message", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên."
+            ));
+        }
+        
         if (!user.isVerified()) {
             // Re-send OTP if not verified
             otpService.generateAndSendOtp(user.getEmail());
@@ -165,6 +172,9 @@ public class AuthController {
                 User user;
                 if (existingUser.isPresent()) {
                     user = existingUser.get();
+                    if (!user.isActive()) {
+                        return ResponseEntity.status(403).body(Map.of("success", false, "message", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên."));
+                    }
                     if (!user.isVerified()) {
                         user.setVerified(true); // Auto verify if google email is verified
                     }

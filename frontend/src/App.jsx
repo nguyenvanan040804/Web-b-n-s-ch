@@ -248,6 +248,7 @@ function App() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState('form');
   const [orders, setOrders] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [checkoutInfo, setCheckoutInfo] = useState({ name: '', phone: '', address: '', note: '', paymentMethod: 'COD' });
   const [placedOrderDetails, setPlacedOrderDetails] = useState(null);
 
@@ -311,6 +312,19 @@ function App() {
       return 0; // default sort (in-memory list order)
     });
 
+  async function fetchAllUsers() {
+    if (user?.role !== 'admin') return;
+    try {
+      const res = await fetch('/api/users');
+      if (res.ok) {
+        const data = await res.json();
+        setAllUsers(data);
+      }
+    } catch (err) {
+      console.error("Lỗi khi tải danh sách người dùng:", err);
+    }
+  }
+
   async function fetchOrders() {
     if (!user) return;
     try {
@@ -333,8 +347,11 @@ function App() {
     if (page === 'store') {
       fetchBooks();
     }
-    if (page === 'orders' || page === 'admin') {
+    if (page === 'orders' || user?.role === 'admin') {
       fetchOrders();
+    }
+    if (user?.role === 'admin') {
+      fetchAllUsers();
     }
   }, [page, user]);
 
@@ -782,6 +799,43 @@ function App() {
     }
   }
 
+  async function handleUpdateUserRole(userId, role) {
+    try {
+      const res = await fetch(`/api/users/${userId}/role`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAllUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: data.user.role } : u)));
+        setAdminMessage('Cập nhật quyền thành công');
+      } else {
+        setAdminMessage('Lỗi cập nhật quyền');
+      }
+    } catch (err) {
+      console.error("Lỗi cập nhật quyền:", err);
+    }
+  }
+
+  async function handleToggleUserStatus(userId, currentStatus) {
+    try {
+      const res = await fetch(`/api/users/${userId}/status`, { 
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !currentStatus })
+      });
+      if (res.ok) {
+        setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, active: !currentStatus } : u));
+        setAdminMessage(`Đã ${!currentStatus ? 'mở khóa' : 'khóa'} tài khoản thành công`);
+      } else {
+        setAdminMessage('Lỗi khi thay đổi trạng thái');
+      }
+    } catch (err) {
+      console.error("Lỗi thay đổi trạng thái user:", err);
+    }
+  }
+
   const app = {
     page,
     setPage,
@@ -817,6 +871,8 @@ function App() {
     setCheckoutStep,
     orders,
     setOrders,
+    allUsers,
+    setAllUsers,
     checkoutInfo,
     setCheckoutInfo,
     placedOrderDetails,
@@ -846,6 +902,8 @@ function App() {
     handleUpdateOrderStatus,
     handleCreateBook,
     handleDeleteBook,
+    handleUpdateUserRole,
+    handleToggleUserStatus,
     cartCount,
     cartTotal,
     filteredBooks,
@@ -875,7 +933,7 @@ function App() {
   };
 
   // Admin dashboard: render standalone full-page layout (no user navbar/footer)
-  if (page === 'admin' && user?.role === 'admin') {
+  if (user?.role === 'admin') {
     return <Admin app={app} />;
   }
 
