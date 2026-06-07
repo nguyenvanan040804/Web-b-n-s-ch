@@ -2,7 +2,6 @@ package com.bookstore.controller;
 
 import com.bookstore.model.User;
 import com.bookstore.repository.UserRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -61,16 +60,11 @@ public class ForgotPasswordController {
 
             otpStore.put(email, otp);
 
-            // gửi mail
-            SimpleMailMessage message =
-                    new SimpleMailMessage();
+            SimpleMailMessage message = new SimpleMailMessage();
 
             message.setTo(email);
             message.setSubject("OTP đặt lại mật khẩu");
-
-            message.setText(
-                    "Mã OTP của bạn là: " + otp
-            );
+            message.setText("Mã OTP của bạn là: " + otp);
 
             mailSender.send(message);
 
