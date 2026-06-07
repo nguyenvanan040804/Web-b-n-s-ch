@@ -1,10 +1,6 @@
 package com.bookstore.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
@@ -15,10 +11,15 @@ public class User {
     private Long id;
 
     private String name;
+
     private String email;
+
     private String password;
+
     private String role;
+
     private String phone;
+
     private String address;
 
     private boolean isVerified;
@@ -131,7 +132,7 @@ public class User {
     }
 
     public void setVerified(boolean verified) {
-        isVerified = verified;
+        this.isVerified = verified;
     }
 
     public String getAuthProvider() {
@@ -147,6 +148,6 @@ public class User {
     }
 
     public void setActive(boolean active) {
-        isActive = active;
+        this.isActive = active;
     }
 }
