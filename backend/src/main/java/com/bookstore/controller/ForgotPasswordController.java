@@ -2,14 +2,16 @@ package com.bookstore.controller;
 
 import com.bookstore.model.User;
 import com.bookstore.repository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 @RestController
@@ -23,14 +25,17 @@ public class ForgotPasswordController {
     @Autowired
     private UserRepository userRepository;
 
-    // Lưu OTP tạm thời
-    private Map<String, String> otpStore = new HashMap<>();
-    private BCryptPasswordEncoder passwordEncoder =
-        new BCryptPasswordEncoder();
+    // Lưu OTP tạm
+    private final Map<String, String> otpStore = new HashMap<>();
+
+    private final BCryptPasswordEncoder passwordEncoder =
+            new BCryptPasswordEncoder();
 
     // ================= GỬI OTP =================
     @PostMapping("/send-otp")
-    public Map<String, Object> sendOtp(@RequestBody Map<String, String> body) {
+    public Map<String, Object> sendOtp(
+            @RequestBody Map<String, String> body
+    ) {
 
         Map<String, Object> response = new HashMap<>();
 
@@ -38,9 +43,10 @@ public class ForgotPasswordController {
 
             String email = body.get("email");
 
-            User user = userRepository.findByEmail(email);
+            Optional<User> userOpt =
+                    userRepository.findByEmail(email);
 
-            if (user == null) {
+            if (userOpt.isEmpty()) {
 
                 response.put("success", false);
                 response.put("message", "Email không tồn tại");
@@ -56,7 +62,8 @@ public class ForgotPasswordController {
             otpStore.put(email, otp);
 
             // gửi mail
-            SimpleMailMessage message = new SimpleMailMessage();
+            SimpleMailMessage message =
+                    new SimpleMailMessage();
 
             message.setTo(email);
             message.setSubject("OTP đặt lại mật khẩu");
@@ -83,9 +90,11 @@ public class ForgotPasswordController {
         return response;
     }
 
-    // ================= XÁC THỰC OTP =================
+    // ================= VERIFY OTP =================
     @PostMapping("/verify-otp")
-    public Map<String, Object> verifyOtp(@RequestBody Map<String, String> body) {
+    public Map<String, Object> verifyOtp(
+            @RequestBody Map<String, String> body
+    ) {
 
         Map<String, Object> response = new HashMap<>();
 
@@ -108,9 +117,11 @@ public class ForgotPasswordController {
         return response;
     }
 
-    // ================= ĐỔI MẬT KHẨU =================
+    // ================= RESET PASSWORD =================
     @PostMapping("/reset-password")
-    public Map<String, Object> resetPassword(@RequestBody Map<String, String> body) {
+    public Map<String, Object> resetPassword(
+            @RequestBody Map<String, String> body
+    ) {
 
         Map<String, Object> response = new HashMap<>();
 
@@ -119,9 +130,10 @@ public class ForgotPasswordController {
             String email = body.get("email");
             String newPassword = body.get("newPassword");
 
-            User user = userRepository.findByEmail(email);
+            Optional<User> userOpt =
+                    userRepository.findByEmail(email);
 
-            if (user == null) {
+            if (userOpt.isEmpty()) {
 
                 response.put("success", false);
                 response.put("message", "Không tìm thấy user");
@@ -129,9 +141,11 @@ public class ForgotPasswordController {
                 return response;
             }
 
+            User user = userOpt.get();
+
             user.setPassword(
-    passwordEncoder.encode(newPassword)
-);
+                    passwordEncoder.encode(newPassword)
+            );
 
             userRepository.save(user);
 

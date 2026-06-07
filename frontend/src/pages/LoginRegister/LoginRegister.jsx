@@ -262,21 +262,6 @@ export default function LoginRegister({ app }) {
                   </div>
                 </div>
               )}
-main
-
-              {page === 'login' && (
-                <div className="actions">
-                  <label className="remember">
-                    <input
-                      type="checkbox"
-                      checked={remember}
-                      onChange={(event) => setRemember(event.target.checked)}
-                    />
-                    Nhớ đăng nhập
-                  </label>
-                  <a href="#">Quên mật khẩu?</a>
-                </div>
-              )}
 
               <button type="submit" className="submit-btn" disabled={loading}>
                 {loading ? 'Đang xử lý...' : page === 'login' ? 'Đăng nhập' : 'Đăng ký'}
