@@ -1,162 +1,212 @@
-import React, { useState } from 'react';
-import './ForgotPassword.css';
-
+import { useState } from "react";
+import "./ForgotPassword.css";
 export default function ForgotPassword({ app }) {
 
-  const { switchPage } = app;
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   const [step, setStep] = useState(1);
 
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [message, setMessage] = useState("");
 
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  async function sendOtp(e) {
-    e.preventDefault();
-
-    setLoading(true);
-    setMessage('');
+  async function sendOtp() {
 
     try {
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email })
-      });
+
+      const res = await fetch(
+        "http://localhost:8080/api/forgot-password/send-otp",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email })
+        }
+      );
 
       const data = await res.json();
 
-      if (res.ok) {
-        setMessage(data.message);
+      if (data.success) {
+
+        setMessage("Đã gửi OTP");
         setStep(2);
+
       } else {
+
         setMessage(data.message);
       }
 
     } catch (err) {
-      setMessage('Không thể kết nối server');
-    }
 
-    setLoading(false);
+      setMessage("Không kết nối được server");
+    }
   }
 
-  async function resetPassword(e) {
-    e.preventDefault();
+ async function verifyOtp() {
 
-    setLoading(true);
-    setMessage('');
+  try {
 
-    try {
-
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
+    const res = await fetch(
+      "http://localhost:8080/api/forgot-password/verify-otp",
+      {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           email,
-          otp,
-          newPassword
+          otp
         })
-      });
+      }
+    );
+
+    const data = await res.json();
+
+    console.log(data);
+
+    if (data.success === true) {
+
+      setMessage("OTP đúng");
+
+      console.log("OTP SUCCESS");
+
+      setStep(3);
+
+    } else {
+
+      setMessage(data.message || "OTP sai");
+    }
+
+  } catch (err) {
+
+    console.log(err);
+
+    setMessage("Lỗi server");
+  }
+}
+
+  async function resetPassword() {
+
+    try {
+
+      const res = await fetch(
+        "http://localhost:8080/api/forgot-password/reset-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            email,
+            newPassword
+          })
+        }
+      );
 
       const data = await res.json();
 
-      if (res.ok) {
-        setMessage(data.message);
+      if (data.success) {
 
-        setTimeout(() => {
-          switchPage('login');
-        }, 2000);
+  setMessage("Đổi mật khẩu thành công");
 
-      } else {
+  setTimeout(() => {
+
+    app.switchPage("login");
+
+  }, 1500);
+
+} else {
+
         setMessage(data.message);
       }
 
     } catch (err) {
-      setMessage('Không thể kết nối server');
-    }
 
-    setLoading(false);
+      setMessage("Lỗi server");
+    }
   }
 
   return (
-    <div className="forgot-container">
 
-      <div className="forgot-card">
+    <div className="page-wrapper">
 
-        <h1>Quên mật khẩu</h1>
+      <div className="login-shell">
 
-        {step === 1 && (
-          <form onSubmit={sendOtp}>
+        <section className="login-form">
 
-            <div className="form-group">
-              <label>Email</label>
+          <div className="forgot-title">
+  <h2>Quên mật khẩu</h2>
 
+  <span>
+    Nhập email để nhận mã OTP và đặt lại mật khẩu.
+  </span>
+</div>
+
+          {/* STEP 1 */}
+          {step === 1 && (
+            <>
               <input
                 type="email"
+                placeholder="Nhập email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
               />
-            </div>
 
-            <button type="submit">
-              {loading ? 'Đang gửi...' : 'Gửi OTP'}
-            </button>
+              <button
+  className="submit-btn"
+  onClick={sendOtp}
+>
+                Gửi OTP
+              </button>
+            </>
+          )}
 
-          </form>
-        )}
-
-        {step === 2 && (
-          <form onSubmit={resetPassword}>
-
-            <div className="form-group">
-              <label>OTP</label>
-
+          {/* STEP 2 */}
+          {step === 2 && (
+            <>
               <input
                 type="text"
+                placeholder="Nhập OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                required
               />
-            </div>
 
-            <div className="form-group">
-              <label>Mật khẩu mới</label>
+              <button
+  className="submit-btn"
+  onClick={verifyOtp}
+>
+                Xác thực OTP
+              </button>
+            </>
+          )}
 
+          {/* STEP 3 */}
+          {step === 3 && (
+            <>
               <input
                 type="password"
+                placeholder="Mật khẩu mới"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                required
               />
-            </div>
 
-            <button type="submit">
-              {loading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
-            </button>
+              <button
+  className="submit-btn"
+  onClick={resetPassword}
+>
+                Đổi mật khẩu
+              </button>
+            </>
+          )}
 
-          </form>
-        )}
+          {message && (
+  <div className="message-box">
+    {message}
+  </div>
+)}
 
-        {message && (
-          <div className="message-box">
-            {message}
-          </div>
-        )}
-
-        <button
-          className="back-btn"
-          onClick={() => switchPage('login')}
-        >
-          Quay lại đăng nhập
-        </button>
+        </section>
 
       </div>
 
