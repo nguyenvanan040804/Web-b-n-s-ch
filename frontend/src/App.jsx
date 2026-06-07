@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Store from './pages/Store/Store';
@@ -200,14 +201,21 @@ const DEFAULT_BOOKS = [
 ];
 
 function App() {
-  const [page, setPage] = useState('store');
-  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const page = location.pathname === '/' ? 'store' : location.pathname.substring(1);
+
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')) || null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('user', JSON.stringify(user));
+  }, [user]);
 
   const message = '';
   const setMessage = (msg) => {
@@ -221,7 +229,12 @@ function App() {
   };
 
   const [books, setBooks] = useState(DEFAULT_BOOKS);
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem('cart')) || []);
+  
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
+
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tất cả');
 
@@ -250,7 +263,12 @@ function App() {
   const [checkoutStep, setCheckoutStep] = useState('form');
   const [orders, setOrders] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
-  const [checkoutInfo, setCheckoutInfo] = useState({ name: '', phone: '', address: '', note: '', paymentMethod: 'COD' });
+  const [checkoutInfo, setCheckoutInfo] = useState(() => JSON.parse(localStorage.getItem('checkoutInfo')) || { name: '', phone: '', address: '', note: '', paymentMethod: 'COD' });
+
+  useEffect(() => {
+    localStorage.setItem('checkoutInfo', JSON.stringify(checkoutInfo));
+  }, [checkoutInfo]);
+
   const [placedOrderDetails, setPlacedOrderDetails] = useState(null);
 
   // Mock Payment Gateway specific
@@ -391,9 +409,9 @@ function App() {
 
   function switchPage(p) {
     setMessage('');
-    setPage(p);
     setIsUserDropdownOpen(false);
     window.scrollTo({ top: 0, behavior: 'instant' });
+    navigate(p === 'store' ? '/' : `/${p}`);
   }
 
   async function handleGoogleLogin(token) {
@@ -839,7 +857,7 @@ function App() {
 
   const app = {
     page,
-    setPage,
+    setPage: switchPage,
     user,
     setUser,
     name,
@@ -1050,18 +1068,22 @@ function App() {
         alignItems: 'center',
         justifyContent: 'center'
       } : {}}>
-        {page === 'store' && <Store app={app} />}
-        {page === 'bestsellers' && <Bestsellers app={app} />}
-        {page === 'about' && <About />}
-        {page === 'faq' && <FAQ app={app} />}
-        {page === 'contact' && <Contact app={app} />}
-        {page === 'orders' && <Orders app={app} />}
-        {page === 'cart' && <Cart app={app} />}
-        {page === 'profile' && <Profile app={app} />}
-        {page === 'privacy' && <PrivacyPolicy />}
-        {page === 'terms' && <TermsOfService />}
-        {(page === 'login' || page === 'register') && <LoginRegister app={app} />}
-       {page === 'forgot-password' && <ForgotPassword app={app} />}
+        <Routes>
+          <Route path="/" element={<Store app={app} />} />
+          <Route path="/bestsellers" element={<Bestsellers app={app} />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/faq" element={<FAQ app={app} />} />
+          <Route path="/contact" element={<Contact app={app} />} />
+          <Route path="/orders" element={<Orders app={app} />} />
+          <Route path="/cart" element={<Cart app={app} />} />
+          <Route path="/profile" element={<Profile app={app} />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/login" element={<LoginRegister app={app} />} />
+          <Route path="/register" element={<LoginRegister app={app} />} />
+          <Route path="/forgot-password" element={<ForgotPassword app={app} />} />
+          <Route path="*" element={<Store app={app} />} />
+        </Routes>
       </div>
 
       {page !== 'login' && page !== 'register' && <Footer />}
