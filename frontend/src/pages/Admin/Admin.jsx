@@ -5,12 +5,13 @@ import Dashboard from './Dashboard/Dashboard';
 import Books     from './Books/Books';
 import Orders    from './Orders/Orders';
 import AddBook   from './AddBook/AddBook';
+import Users     from './Users/Users';
 
-/** Tab definitions */
 const TABS = [
   { id: 'dashboard', label: 'Tổng quan',         icon: 'dashboard' },
   { id: 'books',     label: 'Quản lý Sách',       icon: 'books'     },
   { id: 'orders',    label: 'Quản lý Đơn hàng',   icon: 'orders'    },
+  { id: 'users',     label: 'Quản lý Người dùng', icon: 'users'     },
   { id: 'add-book',  label: 'Thêm Sách mới',       icon: 'addBook'   },
 ];
 
@@ -25,6 +26,7 @@ export default function Admin({ app }) {
     orders, handleUpdateOrderStatus,
     newBook, setNewBook, handleCreateBook, adminMessage,
     books, handleDeleteBook,
+    allUsers, handleUpdateUserRole, handleToggleUserStatus,
     user, handleLogout, switchPage,
   } = app;
 
@@ -85,17 +87,7 @@ export default function Admin({ app }) {
           ))}
         </nav>
 
-        <div className="adm-sidebar-divider" />
 
-        {/* Secondary nav */}
-        <div className="adm-section-label">KHÁC</div>
-        <nav className="adm-nav">
-          <button className="adm-nav-item store-btn" onClick={() => switchPage('store')}>
-            <span className="adm-nav-icon"><Ic path={ICONS.store} /></span>
-            <span className="adm-nav-label">Về cửa hàng</span>
-            <span className="adm-ext-icon">↗</span>
-          </button>
-        </nav>
 
         {/* User footer */}
         <div className="adm-sidebar-footer">
@@ -172,6 +164,14 @@ export default function Admin({ app }) {
             <Orders
               orders={orders}
               handleUpdateOrderStatus={handleUpdateOrderStatus}
+            />
+          )}
+
+          {adminTab === 'users' && (
+            <Users
+              allUsers={allUsers}
+              handleUpdateUserRole={handleUpdateUserRole}
+              handleToggleUserStatus={handleToggleUserStatus}
             />
           )}
 

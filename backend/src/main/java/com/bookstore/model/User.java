@@ -24,7 +24,9 @@ public class User {
 
     private boolean isVerified;
 
-    private String authProvider;
+    private String authProvider; // LOCAL or GOOGLE
+
+    private boolean isActive;
 
     public User() {
         this.role = "user";
@@ -32,16 +34,34 @@ public class User {
         this.address = "";
         this.isVerified = false;
         this.authProvider = "LOCAL";
+        this.isActive = true;
     }
 
-    public User(
-            String name,
-            String email,
-            String password,
-            String role,
-            String phone,
-            String address
-    ) {
+    public User(String name, String email, String password) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.role = "user";
+        this.phone = "";
+        this.address = "";
+        this.isVerified = false;
+        this.authProvider = "LOCAL";
+        this.isActive = true;
+    }
+
+    public User(String name, String email, String password, String role) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.role = role == null ? "user" : role;
+        this.phone = "";
+        this.address = "";
+        this.isVerified = false;
+        this.authProvider = "LOCAL";
+        this.isActive = true;
+    }
+
+    public User(String name, String email, String password, String role, String phone, String address) {
         this.name = name;
         this.email = email;
         this.password = password;
@@ -50,6 +70,7 @@ public class User {
         this.address = address;
         this.isVerified = true;
         this.authProvider = "LOCAL";
+        this.isActive = true;
     }
 
     public Long getId() {
@@ -113,7 +134,7 @@ public class User {
     }
 
     public void setVerified(boolean verified) {
-        isVerified = verified;
+        this.isVerified = verified;
     }
 
     public String getAuthProvider() {
@@ -122,5 +143,13 @@ public class User {
 
     public void setAuthProvider(String authProvider) {
         this.authProvider = authProvider;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        this.isActive = active;
     }
 }
