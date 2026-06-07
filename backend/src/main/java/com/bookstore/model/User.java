@@ -1,12 +1,6 @@
 package com.bookstore.model;
 
 import jakarta.persistence.*;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
- main
 
 @Entity
 @Table(name = "users")
@@ -30,6 +24,7 @@ public class User {
 
     private boolean isVerified;
     private String authProvider; // LOCAL or GOOGLE
+    private boolean isActive;
 
     public User() {
         this.role = "user";
@@ -37,34 +32,19 @@ public class User {
         this.address = "";
         this.isVerified = false;
         this.authProvider = "LOCAL";
- main
+        this.isActive = true;
     }
 
-    public User(
-            String name,
-            String email,
-            String password,
-            String role,
-            String phone,
-            String address
-    ) {
+    public User(String name, String email, String password) {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.role = role;
-        this.phone = phone;
-        this.address = address;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
         this.role = "user";
         this.phone = "";
         this.address = "";
         this.isVerified = false;
         this.authProvider = "LOCAL";
+        this.isActive = true;
     }
 
     public User(String name, String email, String password, String role) {
@@ -76,6 +56,7 @@ public class User {
         this.address = "";
         this.isVerified = false;
         this.authProvider = "LOCAL";
+        this.isActive = true;
     }
 
     public User(String name, String email, String password, String role, String phone, String address) {
@@ -87,13 +68,13 @@ public class User {
         this.address = address;
         this.isVerified = true; // existing users or seeders assumed verified
         this.authProvider = "LOCAL";
+        this.isActive = true;
     }
 
     public Long getId() {
         return id;
     }
 
- main
     public void setId(Long id) {
         this.id = id;
     }
@@ -145,14 +126,13 @@ public class User {
     public void setAddress(String address) {
         this.address = address;
     }
-}
 
     public boolean isVerified() {
         return isVerified;
     }
 
     public void setVerified(boolean verified) {
-        isVerified = verified;
+        this.isVerified = verified;
     }
 
     public String getAuthProvider() {
@@ -162,5 +142,12 @@ public class User {
     public void setAuthProvider(String authProvider) {
         this.authProvider = authProvider;
     }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        this.isActive = active;
+    }
 }
- main
