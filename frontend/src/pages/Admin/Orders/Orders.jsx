@@ -1,72 +1,51 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Ic, ICONS } from '../AdminIcons';
 import './Orders.css';
 
 /**
  * Orders — Tab Quản lý Đơn hàng
- * Props: orders, handleUpdateOrderStatus
+ * Props: orders, handleUpdateOrderStatus, handleDeleteOrder, filterDate, setFilterDate, todayISO, user
  */
-export default function Orders({ orders, handleUpdateOrderStatus }) {
-  // Lấy ngày hiện tại chuẩn YYYY-MM-DD theo múi giờ local
-  const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-  const todayISO = new Date(Date.now() - tzOffset).toISOString().split('T')[0];
-  
-  const [filterDate, setFilterDate] = useState(todayISO);
-
-  const filteredOrders = orders.filter(ord => {
-    if (!filterDate) return true; // Nếu bỏ trống ngày -> Hiển thị tất cả
-    
-    // ord.date thường có dạng "07/06/2026 19:13:33" hoặc "7/6/2026"
-    // Cố gắng trích xuất DD, MM, YYYY
-    const match = ord.date?.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-    if (match) {
-      const d = match[1].padStart(2, '0');
-      const m = match[2].padStart(2, '0');
-      const y = match[3];
-      const ordDateStr = `${y}-${m}-${d}`;
-      return ordDateStr === filterDate;
-    }
-    
-    // Dự phòng tìm chuỗi string thô
-    const parts = filterDate.split('-');
-    if (parts.length === 3) {
-      const formattedVi = `${parseInt(parts[2], 10)}/${parseInt(parts[1], 10)}/${parts[0]}`;
-      const formattedVi2 = `${parts[2]}/${parts[1]}/${parts[0]}`;
-      return ord.date?.includes(formattedVi) || ord.date?.includes(formattedVi2);
-    }
-    return false;
-  });
-
+export default function Orders({ orders, handleUpdateOrderStatus, handleDeleteOrder, filterDate, setFilterDate, todayISO, user }) {
   return (
     <div>
       {/* Section header */}
       <div className="adm-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
         <div>
           <h3>Quản lý Đơn hàng</h3>
-          <p>Hiển thị {filteredOrders.length} đơn hàng {filterDate ? 'trong ngày' : 'trong hệ thống'}.</p>
+          <p>Hiển thị {orders.length} đơn hàng {filterDate ? 'trong ngày' : 'trong hệ thống'}.</p>
         </div>
-        <div className="date-filter-box" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <label htmlFor="order-date-filter" style={{ fontWeight: '500', color: '#475569' }}>Chọn ngày:</label>
+        <div className="date-filter-wrapper">
+            <div className="date-filter-label">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm-10-6H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/>
+              </svg>
+              Ngày đặt:
+            </div>
             <input 
               id="order-date-filter"
               type="date" 
+              className="date-input-field"
               value={filterDate}
+              max={todayISO}
               onChange={(e) => setFilterDate(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', fontFamily: 'inherit' }}
             />
             {filterDate && (
               <button 
+                className="date-clear-btn"
                 onClick={() => setFilterDate('')}
-                style={{ padding: '8px 16px', background: '#e2e8f0', color: '#334155', fontWeight: '500', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
-                title="Xem tất cả lịch sử đơn hàng"
+                title="Bỏ lọc, xem toàn bộ lịch sử đơn hàng"
               >
-                Tất cả
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+                Hủy lọc
               </button>
             )}
         </div>
       </div>
 
-      {filteredOrders.length > 0 ? (
+      {orders.length > 0 ? (
         <div className="adm-card adm-no-pad">
           <div className="adm-table-wrap">
             <table className="adm-table">
@@ -82,7 +61,7 @@ export default function Orders({ orders, handleUpdateOrderStatus }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map(ord => (
+                {orders.map(ord => (
                   <tr key={ord.id}>
                     <td><strong className="adm-order-id">#{ord.id}</strong></td>
                     <td>
@@ -108,7 +87,7 @@ export default function Orders({ orders, handleUpdateOrderStatus }) {
                         {ord.status}
                       </span>
                     </td>
-                    <td>
+                    <td style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <select
                         className="adm-select"
                         value={ord.status}
@@ -119,6 +98,17 @@ export default function Orders({ orders, handleUpdateOrderStatus }) {
                         <option value="Đã giao thành công">Đã giao thành công</option>
                         <option value="Đã hủy đơn">Hủy đơn hàng</option>
                       </select>
+                      {user?.role === 'superadmin' && (
+                        <button 
+                          onClick={() => handleDeleteOrder(ord.id)}
+                          style={{ color: '#ef4444', background: 'none', border: 'none', padding: '4px', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          title="Xóa đơn hàng (Super Admin)"
+                        >
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.12-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/>
+                          </svg>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

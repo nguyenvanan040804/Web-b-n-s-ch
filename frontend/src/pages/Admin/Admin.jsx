@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Admin.css';
 import { Ic, ICONS } from './AdminIcons';
 import Dashboard from './Dashboard/Dashboard';
@@ -21,16 +22,52 @@ const TABS = [
  *   Dashboard, Books, Orders, AddBook
  */
 export default function Admin({ app }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const {
-    adminTab, setAdminTab,
-    orders, handleUpdateOrderStatus,
+    orders, handleUpdateOrderStatus, handleDeleteOrder,
     newBook, setNewBook, handleCreateBook, adminMessage,
     books, handleDeleteBook,
-    allUsers, handleUpdateUserRole, handleToggleUserStatus,
+    allUsers, handleUpdateUserRole, handleToggleUserStatus, handleDeleteUser,
     user, handleLogout, switchPage,
   } = app;
 
+  let adminTab = location.pathname.substring(1);
+  const validTabs = ['dashboard', 'books', 'orders', 'users', 'add-book'];
+  if (!validTabs.includes(adminTab)) {
+    adminTab = 'dashboard';
+  }
+
+  const setAdminTab = (tabId) => {
+    navigate(`/${tabId}`);
+    window.scrollTo(0, 0);
+  };
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Lọc đơn hàng toàn cục
+  const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+  const todayISO = new Date(Date.now() - tzOffset).toISOString().split('T')[0];
+  const [filterDate, setFilterDate] = useState(todayISO);
+
+  const filteredOrders = orders.filter(ord => {
+    if (!filterDate) return true;
+    const match = ord.date?.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (match) {
+      const d = match[1].padStart(2, '0');
+      const m = match[2].padStart(2, '0');
+      const y = match[3];
+      return `${y}-${m}-${d}` === filterDate;
+    }
+    const parts = filterDate.split('-');
+    if (parts.length === 3) {
+      const formattedVi = `${parseInt(parts[2], 10)}/${parseInt(parts[1], 10)}/${parts[0]}`;
+      const formattedVi2 = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return ord.date?.includes(formattedVi) || ord.date?.includes(formattedVi2);
+    }
+    return false;
+  });
 
   /* Badge: số đơn đang chờ chuẩn bị (hiện trên sidebar) */
   const pendingCount = orders.filter(o => o.status === 'Chờ chuẩn bị hàng').length;
@@ -133,9 +170,13 @@ export default function Admin({ app }) {
             </div>
           </div>
           <div className="adm-topbar-right">
-            <div className="adm-topbar-date">{today}</div>
+            <div className="adm-topbar-date">
+              {adminTab === 'orders' 
+                ? (filterDate ? new Date(filterDate).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Tất cả thời gian') 
+                : today}
+            </div>
             <div className="adm-topbar-pills">
-              <span className="adm-pill">{orders.length} đơn</span>
+              <span className="adm-pill">{adminTab === 'orders' ? filteredOrders.length : orders.length} đơn</span>
               <span className="adm-pill books-pill">{books.length} sách</span>
             </div>
             <div className="adm-topbar-avatar">{userInitial}</div>
@@ -162,8 +203,13 @@ export default function Admin({ app }) {
 
           {adminTab === 'orders' && (
             <Orders
-              orders={orders}
+              orders={filteredOrders}
               handleUpdateOrderStatus={handleUpdateOrderStatus}
+              handleDeleteOrder={handleDeleteOrder}
+              filterDate={filterDate}
+              setFilterDate={setFilterDate}
+              todayISO={todayISO}
+              user={user}
             />
           )}
 
@@ -172,6 +218,8 @@ export default function Admin({ app }) {
               allUsers={allUsers}
               handleUpdateUserRole={handleUpdateUserRole}
               handleToggleUserStatus={handleToggleUserStatus}
+              handleDeleteUser={handleDeleteUser}
+              currentUser={user}
             />
           )}
 

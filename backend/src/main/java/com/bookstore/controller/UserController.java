@@ -57,4 +57,18 @@ public class UserController {
         }
         return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Trạng thái không hợp lệ"));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable("id") Long id) {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        User user = optionalUser.get();
+        if ("superadmin".equals(user.getRole())) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Không thể xóa tài khoản Super Admin"));
+        }
+        userRepository.delete(user);
+        return ResponseEntity.ok(Map.of("success", true, "message", "Đã xóa tài khoản thành công"));
+    }
 }
