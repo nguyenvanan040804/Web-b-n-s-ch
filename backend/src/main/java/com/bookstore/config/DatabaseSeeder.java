@@ -49,6 +49,13 @@ public class DatabaseSeeder implements CommandLineRunner {
             }
         }
 
+        if (userRepository.findByEmail("superadmin@bookstore.com").isEmpty()) {
+            User superAdmin = new User("Super Admin", "superadmin@bookstore.com", passwordEncoder.encode("123456"), "superadmin", "0999999999", "Trụ sở chính");
+            superAdmin.setVerified(true);
+            userRepository.save(superAdmin);
+            System.out.println("Super Admin account created.");
+        }
+
         if (bookRepository.count() == 0) {
             Book book1 = new Book(1L, "Đắc Nhân Tâm", "Dale Carnegie", "Cuốn sách đưa ra các lời khuyên về cách thức cư xử, ứng xử và giao tiếp với mọi người để đạt được sự đồng cảm và thành công trong cuộc sống.", 86000, "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80", "Kỹ năng", "NXB Tổng hợp TP.HCM", 320, 2021);
             Book book2 = new Book(2L, "Nhà Giả Kim", "Paulo Coelho", "Một tác phẩm kinh diễn về việc theo đuổi ước mơ, lắng nghe tiếng nói của trái tim và học cách thấu hiểu các điềm báo của vũ trụ.", 79000, "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=600&q=80", "Tiểu thuyết", "NXB Hội Nhà Văn", 228, 2020);

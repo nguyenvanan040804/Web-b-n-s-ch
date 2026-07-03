@@ -2,7 +2,7 @@ import React from 'react';
 import { Ic, ICONS } from '../AdminIcons';
 import './Users.css';
 
-export default function Users({ allUsers, handleUpdateUserRole, handleToggleUserStatus }) {
+export default function Users({ allUsers, handleUpdateUserRole, handleToggleUserStatus, handleDeleteUser, currentUser }) {
   if (!allUsers || allUsers.length === 0) {
     return (
       <div className="adm-empty-state">
@@ -68,6 +68,15 @@ export default function Users({ allUsers, handleUpdateUserRole, handleToggleUser
                     >
                       {user.active ? 'Khóa TK' : 'Mở khóa'}
                     </button>
+                    {currentUser?.role === 'superadmin' && (
+                      <button
+                        className="adm-text-action-btn danger"
+                        onClick={() => handleDeleteUser(user.id)}
+                        style={{ marginLeft: '8px', borderLeft: '1px solid #ddd', paddingLeft: '8px' }}
+                      >
+                        Xóa TK
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
