@@ -1,7 +1,12 @@
 import React from 'react';
 import './Store.css';
+import { useNavigate } from "react-router-dom";
+import { addToWishlist } from "../../api/wishlistApi";
 
 export default function Store({ app }) {
+
+  const navigate = useNavigate();
+
   const {
     filteredBooks,
     categories,
@@ -19,157 +24,388 @@ export default function Store({ app }) {
     setMaxPrice
   } = app;
 
+  const handleAddWishlist = async (e, bookId) => {
+
+    e.stopPropagation();
+
+    try {
+
+      await addToWishlist(bookId);
+
+      alert("❤️ Đã thêm vào danh sách yêu thích");
+
+    } catch (err) {
+
+      console.log(err);
+
+      alert("Không thể thêm vào danh sách yêu thích");
+
+    }
+  };
+
   return (
     <>
-      {/* Banner Khuyến Mại */}
+      {/* Banner */}
       <div className="promo-banner">
         <div className="banner-content">
-          <span className="badge">Khuyến mãi tuần lễ vàng</span>
-          <h2>Thế giới mở ra qua từng trang sách</h2>
-          <p>Giảm ngay 20% cho tất cả các đầu sách Kỹ năng & Kinh tế. Miễn phí vận chuyển toàn quốc cho đơn hàng từ 300.000đ.</p>
+          <span className="badge">
+            Khuyến mãi tuần lễ vàng
+          </span>
+
+          <h2>
+            Thế giới mở ra qua từng trang sách
+          </h2>
+
+          <p>
+            Giảm ngay 20% cho tất cả các đầu sách
+            Kỹ năng & Kinh tế.
+            Miễn phí vận chuyển toàn quốc
+            cho đơn từ 300.000đ.
+          </p>
         </div>
       </div>
 
       <div className="store-layout">
-        {/* Sidebar Bộ lọc */}
+
+        {/* Sidebar */}
+
         <aside className="store-sidebar">
+
           <div className="sidebar-section">
+
             <h3>Tìm kiếm</h3>
+
             <div className="search-bar-container">
-              <svg className="search-icon-svg" viewBox="0 0 24 24" width="18" height="18">
-                <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+
+              <svg
+                className="search-icon-svg"
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+              >
+
+                <path
+                  fill="currentColor"
+                  d="M15.5 14h-.79l-.28-.27A6.471
+                  6.471 0 0016 9.5
+                  6.5 6.5 0 109.5 16
+                  c1.61 0 3.09-.59
+                  4.23-1.57l.27.28v.79
+                  l5 4.99L20.49
+                  19l-4.99-5z"
+                />
+
               </svg>
+
               <input
                 className="search-input"
                 type="search"
-                placeholder="Tìm sách, tác giả..."
+                placeholder="Tìm sách..."
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(e) =>
+                  setSearch(e.target.value)
+                }
               />
+
             </div>
+
           </div>
 
           <div className="sidebar-section">
+
             <h3>Danh mục</h3>
+
             <div className="categories-list-vertical">
-              {categories.map((cat) => (
+
+              {categories.map(cat => (
+
                 <button
                   key={cat}
-                  className={`category-item-btn ${selectedCategory === cat ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory(cat)}
+                  className={`category-item-btn ${
+                    selectedCategory === cat
+                      ? "active"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    setSelectedCategory(cat)
+                  }
                 >
+
                   {cat}
+
                 </button>
+
               ))}
+
             </div>
+
           </div>
 
           <div className="sidebar-section">
-            <h3>Lọc theo giá (đ)</h3>
+
+            <h3>Lọc theo giá</h3>
+
             <div className="price-filter-inputs">
+
               <input
                 type="number"
                 placeholder="Từ"
                 value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
+                onChange={(e) =>
+                  setMinPrice(e.target.value)
+                }
               />
-              <span className="price-filter-separator">-</span>
+
+              <span>-</span>
+
               <input
                 type="number"
                 placeholder="Đến"
                 value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
+                onChange={(e) =>
+                  setMaxPrice(e.target.value)
+                }
               />
+
             </div>
+
             {(minPrice || maxPrice) && (
-              <button 
-                className="clear-price-btn" 
-                onClick={() => { setMinPrice(''); setMaxPrice(''); }}
+
+              <button
+                className="clear-price-btn"
+                onClick={() => {
+                  setMinPrice("");
+                  setMaxPrice("");
+                }}
               >
-                Xóa bộ lọc giá
+
+                Xóa bộ lọc
+
               </button>
+
             )}
+
           </div>
 
           <div className="sidebar-section">
-            <h3>Sắp xếp theo</h3>
+
+            <h3>Sắp xếp</h3>
+
             <select
               className="sort-select"
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
+              onChange={(e) =>
+                setSortBy(e.target.value)
+              }
             >
-              <option value="default">Mặc định</option>
-              <option value="price-asc">Giá: Thấp đến Cao</option>
-              <option value="price-desc">Giá: Cao đến Thấp</option>
-              <option value="rating-desc">Đánh giá cao nhất</option>
-              <option value="sales-desc">Bán chạy nhất</option>
-              <option value="year-desc">Năm xuất bản: Mới nhất</option>
+
+              <option value="default">
+                Mặc định
+              </option>
+
+              <option value="price-asc">
+                Giá tăng
+              </option>
+
+              <option value="price-desc">
+                Giá giảm
+              </option>
+
+              <option value="rating-desc">
+                Đánh giá
+              </option>
+
+              <option value="sales-desc">
+                Bán chạy
+              </option>
+
             </select>
+
           </div>
+
         </aside>
 
-        {/* Danh sách sách */}
+        {/* Main */}
+
         <main className="book-panel">
+
           <div className="panel-header">
+
             <div>
+
               <h2>Khám phá tủ sách</h2>
-              <p>Tìm kiếm sách hay phù hợp với tâm hồn của bạn.</p>
+
+              <p>
+                Tìm kiếm sách phù hợp
+              </p>
+
             </div>
-            <div className="results-count">
-              Tìm thấy <strong>{filteredBooks.length}</strong> cuốn sách
+
+            <div>
+
+              <button
+                className="wishlist-page-btn"
+                onClick={() =>
+                  navigate("/wishlist")
+                }
+              >
+
+                ❤️ Danh sách yêu thích
+
+              </button>
+
             </div>
+
+          </div>
+                    <div className="results-count">
+            Tìm thấy <strong>{filteredBooks.length}</strong> cuốn sách
           </div>
 
-          {/* Lưới sách */}
+          {/* Danh sách sách */}
           <div className="book-grid">
+
             {filteredBooks.length > 0 ? (
+
               filteredBooks.map((book) => (
-                <article 
-                  className="book-item" 
+
+                <article
+                  className="book-item"
                   key={book.id}
                   onClick={() => setSelectedBook(book)}
                 >
+
                   <div className="book-cover-container">
-                    <img className="book-cover" src={book.coverUrl} alt={book.title} />
-                    <span className="book-item-category">{book.category}</span>
+
+                    <img
+                      className="book-cover"
+                      src={book.coverUrl}
+                      alt={book.title}
+                    />
+
+                    <span className="book-item-category">
+                      {book.category}
+                    </span>
+
                   </div>
+
                   <div className="book-info">
+
                     <h3>{book.title}</h3>
-                    <p className="author">Bởi {book.author}</p>
-                    
-                    {/* Rating stars display */}
+
+                    <p className="author">
+                      Bởi {book.author}
+                    </p>
+
                     <div className="book-rating-stars">
+
                       {book.averageRating > 0 ? (
+
                         <>
-                          <span className="star-icon">★</span>
-                          <span className="rating-val">{book.averageRating}</span>
-                          <span className="review-count">({book.reviews?.length || 0} đánh giá)</span>
+
+                          <span className="star-icon">
+                            ★
+                          </span>
+
+                          <span className="rating-val">
+                            {book.averageRating}
+                          </span>
+
+                          <span className="review-count">
+                            ({book.reviews?.length || 0} đánh giá)
+                          </span>
+
                         </>
+
                       ) : (
-                        <span className="no-rating">★ Chưa có đánh giá</span>
+
+                        <span className="no-rating">
+                          ★ Chưa có đánh giá
+                        </span>
+
                       )}
+
                     </div>
 
-                    <p className="description">{book.description.substring(0, 75)}...</p>
-                    <div className="book-meta" onClick={(e) => e.stopPropagation()}>
-                      <span className="price">{book.price.toLocaleString('vi-VN')} đ</span>
-                      
-                      <button className="add-btn" onClick={() => addToCart(book)}>
-                        <svg className="add-btn-svg" viewBox="0 0 24 24" width="16" height="16">
-                          <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                        </svg>
-                        Thêm
-                      </button>
+                    <p className="description">
+
+                      {book.description.length > 75
+                        ? book.description.substring(0, 75) + "..."
+                        : book.description}
+
+                    </p>
+
+                    <div
+                      className="book-meta"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+
+                      <span className="price">
+                        {book.price.toLocaleString("vi-VN")} đ
+                      </span>
+
+                      <div className="book-actions">
+
+                        <button
+                          className="wishlist-btn"
+                          title="Thêm vào yêu thích"
+                          onClick={(e) =>
+                            handleAddWishlist(e, book.id)
+                          }
+                        >
+                          ❤️
+                        </button>
+
+                        <button
+                          className="add-btn"
+                          onClick={() => addToCart(book)}
+                        >
+
+                          <svg
+                            className="add-btn-svg"
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                          >
+
+                            <path
+                              fill="currentColor"
+                              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                            />
+
+                          </svg>
+
+                          Thêm
+
+                        </button>
+
+                      </div>
+
                     </div>
+
                   </div>
+
                 </article>
+
               ))
+
             ) : (
-              <div className="empty-state">Không tìm thấy sách nào phù hợp với bộ lọc.</div>
+
+              <div className="empty-state">
+
+                Không tìm thấy sách phù hợp.
+
+              </div>
+
             )}
+
           </div>
+
         </main>
+
       </div>
+
     </>
+
   );
+
 }

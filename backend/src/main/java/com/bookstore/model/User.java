@@ -23,7 +23,10 @@ public class User {
     private String address;
 
     private boolean isVerified;
+
     private String authProvider; // LOCAL or GOOGLE
+    private boolean isActive;
+
     private boolean isActive;
 
     public User() {
@@ -66,7 +69,7 @@ public class User {
         this.role = role == null ? "user" : role;
         this.phone = phone;
         this.address = address;
-        this.isVerified = true; // existing users or seeders assumed verified
+        this.isVerified = true;
         this.authProvider = "LOCAL";
         this.isActive = true;
     }
@@ -150,4 +153,5 @@ public class User {
     public void setActive(boolean active) {
         this.isActive = active;
     }
+}
 }
