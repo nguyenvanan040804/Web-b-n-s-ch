@@ -974,7 +974,16 @@ function App() {
       toast.error('Không thể kết nối đến máy chủ.');
     }
   }
-
+const relatedBooks = selectedBook
+  ? books
+      .filter(
+        (book) =>
+          book.id !== selectedBook.id &&
+          (book.category === selectedBook.category ||
+            book.author === selectedBook.author)
+      )
+      .slice(0, 4)
+  : [];
   const app = {
     page,
     setPage: switchPage,
@@ -1261,7 +1270,43 @@ function App() {
             {/* Reviews Section inside modal */}
             <div className="book-reviews-section">
               <h3>Phản hồi & Đánh giá ({selectedBook.reviews?.length || 0})</h3>
-              
+              {/* ================= SÁCH LIÊN QUAN ================= */}
+
+<div className="related-books-section">
+  <h3>📚 Sách liên quan</h3>
+
+  <div className="related-books-grid">
+    {relatedBooks.length > 0 ? (
+      relatedBooks.map((book) => (
+        <div
+          key={book.id}
+          className="related-book-card"
+        >
+          <img
+            src={book.coverUrl}
+            alt={book.title}
+          />
+
+          <h4>{book.title}</h4>
+
+          <p>{book.author}</p>
+
+          <strong>
+            {book.price.toLocaleString("vi-VN")} đ
+          </strong>
+
+          <button
+            onClick={() => setSelectedBook(book)}
+          >
+            Xem chi tiết
+          </button>
+        </div>
+      ))
+    ) : (
+      <p>Không có sách liên quan.</p>
+    )}
+  </div>
+</div>
               {/* Form gửi đánh giá */}
               {user ? (
                 <form onSubmit={(e) => handleAddReview(selectedBook.id, e)} className="add-review-form">

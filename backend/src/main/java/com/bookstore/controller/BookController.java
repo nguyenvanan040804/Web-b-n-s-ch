@@ -61,4 +61,25 @@ public class BookController {
         }
         return ResponseEntity.notFound().build();
     }
+     @GetMapping("/{id}/related")
+    public ResponseEntity<List<Book>> getRelatedBooks(
+            @PathVariable Long id
+    ) {
+
+        Optional<Book> optionalBook = bookRepository.findById(id);
+
+        if (optionalBook.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Book book = optionalBook.get();
+
+        List<Book> relatedBooks =
+                bookRepository.findTop6ByCategoryAndIdNot(
+                        book.getCategory(),
+                        book.getId()
+                );
+
+        return ResponseEntity.ok(relatedBooks);
+    }
 }
