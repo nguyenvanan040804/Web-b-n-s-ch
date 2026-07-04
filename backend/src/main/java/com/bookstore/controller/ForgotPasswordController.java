@@ -46,12 +46,16 @@ public class ForgotPasswordController {
                     userRepository.findByEmail(email);
 
             if (userOpt.isEmpty()) {
+            java.util.Optional<User> optionalUser = userRepository.findByEmail(email);
+
+            if (optionalUser.isEmpty()) {
 
                 response.put("success", false);
                 response.put("message", "Email không tồn tại");
 
                 return response;
             }
+            User user = optionalUser.get();
 
             // tạo OTP
             String otp = String.valueOf(
@@ -128,12 +132,16 @@ public class ForgotPasswordController {
                     userRepository.findByEmail(email);
 
             if (userOpt.isEmpty()) {
+            java.util.Optional<User> optionalUser = userRepository.findByEmail(email);
+
+            if (optionalUser.isEmpty()) {
 
                 response.put("success", false);
                 response.put("message", "Không tìm thấy user");
 
                 return response;
             }
+            User user = optionalUser.get();
 
             User user = userOpt.get();
 
