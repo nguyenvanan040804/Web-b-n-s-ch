@@ -5,11 +5,12 @@ import com.bookstore.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 @RestController
@@ -23,14 +24,17 @@ public class ForgotPasswordController {
     @Autowired
     private UserRepository userRepository;
 
-    // Lưu OTP tạm thời
-    private Map<String, String> otpStore = new HashMap<>();
-    private BCryptPasswordEncoder passwordEncoder =
-        new BCryptPasswordEncoder();
+    // Lưu OTP tạm
+    private final Map<String, String> otpStore = new HashMap<>();
+
+    private final BCryptPasswordEncoder passwordEncoder =
+            new BCryptPasswordEncoder();
 
     // ================= GỬI OTP =================
     @PostMapping("/send-otp")
-    public Map<String, Object> sendOtp(@RequestBody Map<String, String> body) {
+    public Map<String, Object> sendOtp(
+            @RequestBody Map<String, String> body
+    ) {
 
         Map<String, Object> response = new HashMap<>();
 
@@ -38,6 +42,10 @@ public class ForgotPasswordController {
 
             String email = body.get("email");
 
+            Optional<User> userOpt =
+                    userRepository.findByEmail(email);
+
+            if (userOpt.isEmpty()) {
             java.util.Optional<User> optionalUser = userRepository.findByEmail(email);
 
             if (optionalUser.isEmpty()) {
@@ -56,15 +64,11 @@ public class ForgotPasswordController {
 
             otpStore.put(email, otp);
 
-            // gửi mail
             SimpleMailMessage message = new SimpleMailMessage();
 
             message.setTo(email);
             message.setSubject("OTP đặt lại mật khẩu");
-
-            message.setText(
-                    "Mã OTP của bạn là: " + otp
-            );
+            message.setText("Mã OTP của bạn là: " + otp);
 
             mailSender.send(message);
 
@@ -84,9 +88,11 @@ public class ForgotPasswordController {
         return response;
     }
 
-    // ================= XÁC THỰC OTP =================
+    // ================= VERIFY OTP =================
     @PostMapping("/verify-otp")
-    public Map<String, Object> verifyOtp(@RequestBody Map<String, String> body) {
+    public Map<String, Object> verifyOtp(
+            @RequestBody Map<String, String> body
+    ) {
 
         Map<String, Object> response = new HashMap<>();
 
@@ -109,9 +115,11 @@ public class ForgotPasswordController {
         return response;
     }
 
-    // ================= ĐỔI MẬT KHẨU =================
+    // ================= RESET PASSWORD =================
     @PostMapping("/reset-password")
-    public Map<String, Object> resetPassword(@RequestBody Map<String, String> body) {
+    public Map<String, Object> resetPassword(
+            @RequestBody Map<String, String> body
+    ) {
 
         Map<String, Object> response = new HashMap<>();
 
@@ -120,6 +128,10 @@ public class ForgotPasswordController {
             String email = body.get("email");
             String newPassword = body.get("newPassword");
 
+            Optional<User> userOpt =
+                    userRepository.findByEmail(email);
+
+            if (userOpt.isEmpty()) {
             java.util.Optional<User> optionalUser = userRepository.findByEmail(email);
 
             if (optionalUser.isEmpty()) {
@@ -131,9 +143,11 @@ public class ForgotPasswordController {
             }
             User user = optionalUser.get();
 
+            User user = userOpt.get();
+
             user.setPassword(
-    passwordEncoder.encode(newPassword)
-);
+                    passwordEncoder.encode(newPassword)
+            );
 
             userRepository.save(user);
 

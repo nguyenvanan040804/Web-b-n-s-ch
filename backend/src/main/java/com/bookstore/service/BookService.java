@@ -105,4 +105,18 @@ public class BookService {
 
         return review;
     }
+    // Kiểm tra sách có tồn tại không
+public boolean exists(Long id) {
+
+    return books.stream()
+            .anyMatch(book -> book.getId().equals(id));
+
+}
+
+// Lấy số lượng sách
+public int getBookCount() {
+
+    return books.size();
+
+}
 }

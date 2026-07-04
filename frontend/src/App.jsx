@@ -16,6 +16,7 @@ import Admin from './pages/Admin/Admin';
 import Cart from './pages/Cart/Cart';
 import Profile from './pages/Profile/Profile';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
+import Wishlist from "./pages/Wishlist/Wishlist";
 
 const DEFAULT_BOOKS = [
   {
@@ -1241,6 +1242,7 @@ function App() {
           <Route path="/login" element={<LoginRegister app={app} />} />
           <Route path="/register" element={<LoginRegister app={app} />} />
           <Route path="/forgot-password" element={<ForgotPassword app={app} />} />
+          <Route path="/wishlist" element={<Wishlist app={app} />} />
           <Route path="*" element={<Store app={app} />} />
         </Routes>
       </div>
