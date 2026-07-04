@@ -1639,3 +1639,67 @@ input:focus, select:focus, textarea:focus {
   background: var(--primary-dark) !important;
 }
 
+.related-books-section{
+    margin-top:40px;
+}
+
+.related-books-section h3{
+    margin-bottom:20px;
+}
+
+.related-books-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+    gap:20px;
+}
+
+.related-book-card{
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:12px;
+    text-align:center;
+    transition:.3s;
+    background:#fff;
+}
+
+.related-book-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 5px 15px rgba(0,0,0,.15);
+}
+
+.related-book-card img{
+    width:100%;
+    height:220px;
+    object-fit:cover;
+    border-radius:8px;
+}
+
+.related-book-card h4{
+    margin:10px 0;
+    font-size:16px;
+}
+
+.related-book-card p{
+    color:#777;
+    font-size:14px;
+}
+
+.related-book-card strong{
+    display:block;
+    color:#e53935;
+    margin:10px 0;
+}
+
+.related-book-card button{
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    background:#1976d2;
+    color:white;
+}
+
+.related-book-card button:hover{
+    background:#125ca5;
+}
