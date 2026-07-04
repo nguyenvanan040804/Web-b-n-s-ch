@@ -24,6 +24,8 @@ public class Order {
     private ShippingInfo shippingInfo;
     private String status;
     private String paymentStatus;
+    private String couponCode;
+    private double discount;
     
     @jakarta.persistence.Transient
     private String paymentUrl;
@@ -125,4 +127,19 @@ public class Order {
     public void setPaymentUrl(String paymentUrl) {
         this.paymentUrl = paymentUrl;
     }
+    public String getCouponCode() {
+    return couponCode;
+}
+
+public void setCouponCode(String couponCode) {
+    this.couponCode = couponCode;
+}
+
+public double getDiscount() {
+    return discount;
+}
+
+public void setDiscount(double discount) {
+    this.discount = discount;
+}
 }

@@ -7,6 +7,8 @@ import com.bookstore.repository.OrderRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import com.bookstore.model.Coupon;
+import com.bookstore.service.CouponService;
 
 import java.util.List;
 import java.util.Map;
@@ -19,12 +21,17 @@ import java.util.Optional;
 public class OrderController {
 
     private final OrderRepository orderRepository;
-    private final VNPayConfig vNPayConfig;
+private final VNPayConfig vNPayConfig;
+private final CouponService couponService;
 
-    public OrderController(OrderRepository orderRepository, VNPayConfig vNPayConfig) {
-        this.orderRepository = orderRepository;
-        this.vNPayConfig = vNPayConfig;
-    }
+    public OrderController(OrderRepository orderRepository,
+                       VNPayConfig vNPayConfig,
+                       CouponService couponService) {
+
+    this.orderRepository = orderRepository;
+    this.vNPayConfig = vNPayConfig;
+    this.couponService = couponService;
+}
 
     @PostMapping
     public ResponseEntity<?> placeOrder(@RequestBody Order order) {
@@ -45,7 +52,39 @@ public class OrderController {
                 item.setOrder(order);
             }
         }
+// =================== Coupon ===================
 
+if (order.getCouponCode() != null &&
+        !order.getCouponCode().isBlank()) {
+
+    Coupon coupon =
+            couponService.findByCode(
+                    order.getCouponCode()
+            );
+
+    if (coupon != null &&
+            couponService.isValid(
+                    coupon,
+                    order.getTotal()
+            )) {
+
+        double discount =
+                couponService.calculateDiscount(
+                        coupon,
+                        order.getTotal()
+                );
+
+        order.setDiscount(discount);
+
+        order.setTotal(
+                order.getTotal() - discount
+        );
+
+        couponService.decreaseQuantity(coupon);
+
+    }
+
+}
         Order savedOrder = orderRepository.save(order);
         
         Map<String, Object> response = new java.util.HashMap<>();
@@ -57,6 +96,11 @@ public class OrderController {
         response.put("shippingInfo", savedOrder.getShippingInfo());
         response.put("status", savedOrder.getStatus());
         response.put("paymentStatus", savedOrder.getPaymentStatus());
+        response.put("couponCode",
+        savedOrder.getCouponCode());
+
+response.put("discount",
+        savedOrder.getDiscount());
 
         if (order.getShippingInfo() != null && "VNPAY".equalsIgnoreCase(order.getShippingInfo().getPaymentMethod())) {
             String vnpayUrl = generateVNPayUrl(savedOrder);
