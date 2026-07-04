@@ -24,6 +24,9 @@ public class Order {
     private ShippingInfo shippingInfo;
     private String status;
     private String paymentStatus;
+    
+    @jakarta.persistence.Transient
+    private String paymentUrl;
 
     public Order() {
         this.paymentStatus = "Chưa thanh toán";
@@ -113,5 +116,13 @@ public class Order {
 
     public void setPaymentStatus(String paymentStatus) {
         this.paymentStatus = paymentStatus;
+    }
+
+    public String getPaymentUrl() {
+        return paymentUrl;
+    }
+
+    public void setPaymentUrl(String paymentUrl) {
+        this.paymentUrl = paymentUrl;
     }
 }
