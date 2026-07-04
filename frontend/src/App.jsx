@@ -307,7 +307,15 @@ function App() {
   const [checkoutStep, setCheckoutStep] = useState('form');
   const [orders, setOrders] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
-  const [checkoutInfo, setCheckoutInfo] = useState(() => JSON.parse(localStorage.getItem('checkoutInfo')) || { name: '', phone: '', address: '', note: '', paymentMethod: 'COD' });
+  const [checkoutInfo, setCheckoutInfo] = useState(() => JSON.parse(localStorage.getItem('checkoutInfo')) || { name: '', phone: '', email: '', provinceCode: '', districtCode: '', wardCode: '', specificAddress: '', address: '', note: '', paymentMethod: 'COD' });
+  const [provincesData, setProvincesData] = useState([]);
+
+  useEffect(() => {
+    fetch('https://provinces.open-api.vn/api/?depth=3')
+      .then(res => res.json())
+      .then(data => setProvincesData(data))
+      .catch(err => console.error("Lỗi tải dữ liệu tỉnh thành:", err));
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('checkoutInfo', JSON.stringify(checkoutInfo));
@@ -507,6 +515,11 @@ function App() {
         setCheckoutInfo({
           name: data.name,
           phone: data.phone || '',
+          email: data.email || '',
+          provinceCode: '',
+          districtCode: '',
+          wardCode: '',
+          specificAddress: '',
           address: data.address || '',
           note: '',
           paymentMethod: 'COD'
@@ -573,6 +586,11 @@ function App() {
         setCheckoutInfo({
           name: data.name,
           phone: data.phone || '',
+          email: data.email || '',
+          provinceCode: '',
+          districtCode: '',
+          wardCode: '',
+          specificAddress: '',
           address: data.address || '',
           note: '',
           paymentMethod: 'COD'
@@ -626,6 +644,11 @@ function App() {
             setCheckoutInfo({
               name: data.name,
               phone: '',
+              email: data.email || '',
+              provinceCode: '',
+              districtCode: '',
+              wardCode: '',
+              specificAddress: '',
               address: '',
               note: '',
               paymentMethod: 'COD'
@@ -756,12 +779,29 @@ function App() {
 
     const isMockPayment = checkoutInfo.paymentMethod === 'MOMO';
 
+    const province = provincesData.find(p => p.code == checkoutInfo.provinceCode);
+    const district = province?.districts?.find(d => d.code == checkoutInfo.districtCode);
+    const ward = district?.wards?.find(w => w.code == checkoutInfo.wardCode);
+    
+    let fullAddressParts = [];
+    if (checkoutInfo.specificAddress) fullAddressParts.push(checkoutInfo.specificAddress);
+    if (ward) fullAddressParts.push(ward.name);
+    if (district) fullAddressParts.push(district.name);
+    if (province) fullAddressParts.push(province.name);
+    
+    const finalAddress = fullAddressParts.length > 0 ? fullAddressParts.join(', ') : checkoutInfo.address;
+
+    const finalShippingInfo = {
+      ...checkoutInfo,
+      address: finalAddress
+    };
+
     const orderPayload = {
       date: new Date().toLocaleString('vi-VN'),
       userEmail: user?.email || 'guest@bookstore.com',
       items: orderItems,
       total: cartTotal,
-      shippingInfo: checkoutInfo,
+      shippingInfo: finalShippingInfo,
       status: (isMockPayment || checkoutInfo.paymentMethod === 'VNPAY') ? 'Chờ thanh toán' : 'Chờ chuẩn bị hàng',
       paymentStatus: (isMockPayment || checkoutInfo.paymentMethod === 'VNPAY') ? 'Chưa thanh toán' : (checkoutInfo.paymentMethod === 'BANK' ? 'Chờ xác nhận chuyển khoản' : 'Chưa thanh toán')
     };
@@ -1353,10 +1393,74 @@ function App() {
                         <label htmlFor="checkout-phone">Số điện thoại</label>
                         <input id="checkout-phone" type="tel" required placeholder="Nhập số điện thoại liên hệ" value={checkoutInfo.phone} onChange={(e) => setCheckoutInfo({ ...checkoutInfo, phone: e.target.value })} />
                       </div>
+                      
+                      <div className="form-group">
+                        <label htmlFor="checkout-email">Email nhận hóa đơn (Bắt buộc)</label>
+                        <input id="checkout-email" type="email" required placeholder="Nhập email để nhận thông tin đơn hàng" value={checkoutInfo.email} onChange={(e) => setCheckoutInfo({ ...checkoutInfo, email: e.target.value })} />
+                      </div>
 
                       <div className="form-group">
-                        <label htmlFor="checkout-address">Địa chỉ nhận hàng</label>
-                        <input id="checkout-address" type="text" required placeholder="Địa chỉ số nhà, ngõ ngách, phường/xã, quận/huyện..." value={checkoutInfo.address} onChange={(e) => setCheckoutInfo({ ...checkoutInfo, address: e.target.value })} />
+                        <label>Tỉnh / Thành phố</label>
+                        <select 
+                          required 
+                          value={checkoutInfo.provinceCode} 
+                          onChange={(e) => {
+                            setCheckoutInfo({ 
+                              ...checkoutInfo, 
+                              provinceCode: e.target.value, 
+                              districtCode: '', 
+                              wardCode: '' 
+                            });
+                          }}
+                        >
+                          <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                          {provincesData.map(p => (
+                            <option key={p.code} value={p.code}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label>Quận / Huyện</label>
+                        <select 
+                          required 
+                          value={checkoutInfo.districtCode} 
+                          onChange={(e) => {
+                            setCheckoutInfo({ 
+                              ...checkoutInfo, 
+                              districtCode: e.target.value, 
+                              wardCode: '' 
+                            });
+                          }}
+                          disabled={!checkoutInfo.provinceCode}
+                        >
+                          <option value="">-- Chọn Quận / Huyện --</option>
+                          {provincesData.find(p => p.code == checkoutInfo.provinceCode)?.districts?.map(d => (
+                            <option key={d.code} value={d.code}>{d.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label>Phường / Xã</label>
+                        <select 
+                          required 
+                          value={checkoutInfo.wardCode} 
+                          onChange={(e) => setCheckoutInfo({ ...checkoutInfo, wardCode: e.target.value })}
+                          disabled={!checkoutInfo.districtCode}
+                        >
+                          <option value="">-- Chọn Phường / Xã --</option>
+                          {provincesData.find(p => p.code == checkoutInfo.provinceCode)
+                            ?.districts?.find(d => d.code == checkoutInfo.districtCode)
+                            ?.wards?.map(w => (
+                              <option key={w.code} value={w.code}>{w.name}</option>
+                            ))}
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="checkout-specificAddress">Địa chỉ cụ thể (Số nhà, đường...) - Tùy chọn</label>
+                        <input id="checkout-specificAddress" type="text" placeholder="Ví dụ: Số 123, Ngõ 45..." value={checkoutInfo.specificAddress} onChange={(e) => setCheckoutInfo({ ...checkoutInfo, specificAddress: e.target.value })} />
                       </div>
 
                       <div className="form-group">

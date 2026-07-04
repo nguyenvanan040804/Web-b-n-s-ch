@@ -20,10 +20,12 @@ public class OrderController {
 
     private final OrderRepository orderRepository;
     private final VNPayConfig vNPayConfig;
+    private final com.bookstore.service.EmailService emailService;
 
-    public OrderController(OrderRepository orderRepository, VNPayConfig vNPayConfig) {
+    public OrderController(OrderRepository orderRepository, VNPayConfig vNPayConfig, com.bookstore.service.EmailService emailService) {
         this.orderRepository = orderRepository;
         this.vNPayConfig = vNPayConfig;
+        this.emailService = emailService;
     }
 
     @PostMapping
@@ -61,6 +63,9 @@ public class OrderController {
         if (order.getShippingInfo() != null && "VNPAY".equalsIgnoreCase(order.getShippingInfo().getPaymentMethod())) {
             String vnpayUrl = generateVNPayUrl(savedOrder);
             response.put("paymentUrl", vnpayUrl);
+        } else {
+            // Gửi email xác nhận ngay lập tức cho các phương thức thanh toán không phải VNPay (ví dụ: COD, BANK)
+            emailService.sendOrderConfirmationEmail(savedOrder);
         }
         
         return ResponseEntity.ok(response);
