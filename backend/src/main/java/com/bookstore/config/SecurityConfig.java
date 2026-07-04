@@ -37,6 +37,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/google-login", "/api/auth/verify-otp", "/api/auth/forgot-password").permitAll()
+                .requestMatchers("/api/payment/vnpay-callback").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/books").permitAll()
                 
                 // Protected endpoints

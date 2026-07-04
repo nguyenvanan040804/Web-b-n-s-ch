@@ -206,6 +206,7 @@ function App() {
   const page = location.pathname === '/' ? 'store' : location.pathname.substring(1);
 
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')) || null);
+  const [token, setToken] = useState(() => localStorage.getItem('jwtToken') || null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -217,6 +218,47 @@ function App() {
   useEffect(() => {
     localStorage.setItem('user', JSON.stringify(user));
   }, [user]);
+
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem('jwtToken', token);
+    } else {
+      localStorage.removeItem('jwtToken');
+    }
+  }, [token]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const paymentStatus = params.get('payment_status');
+    if (paymentStatus === 'success') {
+      toast.success("Thanh toán qua VNPay thành công!");
+      setCart([]);
+      navigate('/orders', { replace: true });
+    } else if (paymentStatus === 'failed') {
+      toast.error("Thanh toán qua VNPay thất bại hoặc đã bị hủy.");
+      navigate('/orders', { replace: true });
+    }
+  }, [location.search]);
+
+  // Helper: Fetch with JWT token attached, auto-logout on 401
+  const apiFetch = async (url, options = {}) => {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    };
+    const currentToken = localStorage.getItem('jwtToken');
+    if (currentToken) {
+      headers['Authorization'] = `Bearer ${currentToken}`;
+    }
+    const res = await fetch(url, { ...options, headers });
+    if (res.status === 401) {
+      setUser(null);
+      setToken(null);
+      setIsUserDropdownOpen(false);
+      setShowSessionExpiredModal(true);
+    }
+    return res;
+  };
 
   const message = '';
   const setMessage = (msg) => {
@@ -710,7 +752,7 @@ function App() {
       quantity: item.quantity
     }));
 
-    const isMockPayment = checkoutInfo.paymentMethod === 'MOMO' || checkoutInfo.paymentMethod === 'VNPAY';
+    const isMockPayment = checkoutInfo.paymentMethod === 'MOMO';
 
     const orderPayload = {
       date: new Date().toLocaleString('vi-VN'),
@@ -718,8 +760,8 @@ function App() {
       items: orderItems,
       total: cartTotal,
       shippingInfo: checkoutInfo,
-      status: isMockPayment ? 'Chờ thanh toán' : 'Chờ chuẩn bị hàng',
-      paymentStatus: isMockPayment ? 'Chưa thanh toán' : (checkoutInfo.paymentMethod === 'BANK' ? 'Chờ xác nhận chuyển khoản' : 'Chưa thanh toán')
+      status: (isMockPayment || checkoutInfo.paymentMethod === 'VNPAY') ? 'Chờ thanh toán' : 'Chờ chuẩn bị hàng',
+      paymentStatus: (isMockPayment || checkoutInfo.paymentMethod === 'VNPAY') ? 'Chưa thanh toán' : (checkoutInfo.paymentMethod === 'BANK' ? 'Chờ xác nhận chuyển khoản' : 'Chưa thanh toán')
     };
 
     try {
@@ -733,7 +775,9 @@ function App() {
         setOrders((prev) => [savedOrder, ...prev]);
         setPlacedOrderDetails(savedOrder);
         
-        if (isMockPayment) {
+        if (savedOrder.paymentUrl) {
+          window.location.href = savedOrder.paymentUrl;
+        } else if (isMockPayment) {
           setPendingOrderDetails(savedOrder);
           setPaymentGatewayTimer(180);
           setIsPaymentGatewayOpen(true);
@@ -1349,8 +1393,8 @@ function App() {
                         <label className={`payment-radio-label ${checkoutInfo.paymentMethod === 'VNPAY' ? 'checked' : ''}`}>
                           <input type="radio" name="paymentMethod" value="VNPAY" checked={checkoutInfo.paymentMethod === 'VNPAY'} onChange={() => setCheckoutInfo({ ...checkoutInfo, paymentMethod: 'VNPAY' })} />
                           <div className="payment-radio-desc">
-                            <strong>Cổng thanh toán VNPAY-QR (Mô phỏng)</strong>
-                            <span>Thanh toán quét mã bằng ứng dụng Ngân hàng di động</span>
+                            <strong>Cổng thanh toán VNPay Sandbox</strong>
+                            <span>Thanh toán trực tiếp qua cổng VNPay Demo</span>
                           </div>
                         </label>
                       </div>
