@@ -15,7 +15,7 @@ export default function ForgotPassword({ app }) {
     try {
 
       const res = await fetch(
-        "http://localhost:8080/api/forgot-password/send-otp",
+        "/api/forgot-password/send-otp",
         {
           method: "POST",
           headers: {
@@ -48,7 +48,7 @@ export default function ForgotPassword({ app }) {
   try {
 
     const res = await fetch(
-      "http://localhost:8080/api/forgot-password/verify-otp",
+      "/api/forgot-password/verify-otp",
       {
         method: "POST",
         headers: {
@@ -91,7 +91,7 @@ export default function ForgotPassword({ app }) {
     try {
 
       const res = await fetch(
-        "http://localhost:8080/api/forgot-password/reset-password",
+        "/api/forgot-password/reset-password",
         {
           method: "POST",
           headers: {

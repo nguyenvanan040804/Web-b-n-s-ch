@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import com.bookstore.security.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Collections;
 import java.util.Map;
@@ -26,15 +28,17 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
+    private final JwtUtil jwtUtil;
 
     // TODO: The user can inject their own Google Client ID here if they have one.
     // For demo purposes, we accept any audience or check a specific one if configured.
     private static final String GOOGLE_CLIENT_ID = "253069958668-jabu3hlu5hip0ckc16i2rffb3g1hbhvs.apps.googleusercontent.com";
 
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, OtpService otpService) {
+    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, OtpService otpService, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.otpService = otpService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/login")
@@ -68,9 +72,12 @@ public class AuthController {
             ));
         }
 
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
+
         return ResponseEntity.ok(Map.of(
             "success", true,
             "message", "Đăng nhập thành công! Chào mừng " + user.getName(),
+            "token", token,
             "name", user.getName(),
             "email", user.getEmail(),
             "role", user.getRole(),
@@ -138,9 +145,14 @@ public class AuthController {
                 user.setAuthProvider("LOCAL");
                 userRepository.save(user);
             }
+            
+            User finalUser = userRepository.findByEmail(email.toLowerCase()).get();
+            String token = jwtUtil.generateToken(finalUser.getEmail(), finalUser.getRole());
+
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Xác thực thành công. Bạn đã có thể đăng nhập!"
+                "token", token,
+                "message", "Xác thực thành công. Bạn đã được tự động đăng nhập!"
             ));
         }
 
@@ -195,9 +207,12 @@ public class AuthController {
                     userRepository.save(user);
                 }
 
+                String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
+
                 return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Đăng nhập thành công! Chào mừng " + user.getName(),
+                    "token", token,
                     "name", user.getName(),
                     "email", user.getEmail(),
                     "role", user.getRole(),
@@ -250,6 +265,30 @@ public class AuthController {
             "role", user.getRole(),
             "phone", user.getPhone() == null ? "" : user.getPhone(),
             "address", user.getAddress() == null ? "" : user.getAddress()
+        ));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Map<String, Object>> refreshToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            if (jwtUtil.validateToken(token)) {
+                String email = jwtUtil.extractEmail(token);
+                Optional<User> optionalUser = userRepository.findByEmail(email);
+                if (optionalUser.isPresent()) {
+                    User user = optionalUser.get();
+                    String newToken = jwtUtil.generateToken(user.getEmail(), user.getRole());
+                    return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "token", newToken
+                    ));
+                }
+            }
+        }
+        return ResponseEntity.status(401).body(Map.of(
+            "success", false,
+            "message", "Phiên đăng nhập không hợp lệ hoặc đã hết hạn."
         ));
     }
 }

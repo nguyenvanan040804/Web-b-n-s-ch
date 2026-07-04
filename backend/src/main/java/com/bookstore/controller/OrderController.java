@@ -1,5 +1,6 @@
 package com.bookstore.controller;
 
+import com.bookstore.config.VNPayConfig;
 import com.bookstore.model.Order;
 import com.bookstore.model.OrderItem;
 import com.bookstore.repository.OrderRepository;
@@ -18,13 +19,15 @@ import java.util.Optional;
 public class OrderController {
 
     private final OrderRepository orderRepository;
+    private final VNPayConfig vNPayConfig;
 
-    public OrderController(OrderRepository orderRepository) {
+    public OrderController(OrderRepository orderRepository, VNPayConfig vNPayConfig) {
         this.orderRepository = orderRepository;
+        this.vNPayConfig = vNPayConfig;
     }
 
     @PostMapping
-    public ResponseEntity<Order> placeOrder(@RequestBody Order order) {
+    public ResponseEntity<?> placeOrder(@RequestBody Order order) {
         if (order.getId() == null || order.getId().trim().isEmpty()) {
             order.setId("ORD-" + System.currentTimeMillis());
         }
@@ -44,7 +47,80 @@ public class OrderController {
         }
 
         Order savedOrder = orderRepository.save(order);
-        return ResponseEntity.ok(savedOrder);
+        
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("id", savedOrder.getId());
+        response.put("date", savedOrder.getDate());
+        response.put("userEmail", savedOrder.getUserEmail());
+        response.put("items", savedOrder.getItems());
+        response.put("total", savedOrder.getTotal());
+        response.put("shippingInfo", savedOrder.getShippingInfo());
+        response.put("status", savedOrder.getStatus());
+        response.put("paymentStatus", savedOrder.getPaymentStatus());
+
+        if (order.getShippingInfo() != null && "VNPAY".equalsIgnoreCase(order.getShippingInfo().getPaymentMethod())) {
+            String vnpayUrl = generateVNPayUrl(savedOrder);
+            response.put("paymentUrl", vnpayUrl);
+        }
+        
+        return ResponseEntity.ok(response);
+    }
+
+    private String generateVNPayUrl(Order order) {
+        String vnp_Version = "2.1.0";
+        String vnp_Command = "pay";
+        String vnp_OrderInfo = "Thanh toan don hang " + order.getId();
+        String vnp_OrderType = "billpayment";
+        String vnp_TxnRef = order.getId();
+        String vnp_IpAddr = "127.0.0.1";
+        String vnp_TmnCode = vNPayConfig.getTmnCode();
+
+        int amount = (int) (order.getTotal() + (order.getTotal() >= 300000 ? 0 : 30000));
+        long vnp_Amount = (long) amount * 100; // VNPay expects amount * 100
+
+        java.util.Map<String, String> vnp_Params = new java.util.HashMap<>();
+        vnp_Params.put("vnp_Version", vnp_Version);
+        vnp_Params.put("vnp_Command", vnp_Command);
+        vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
+        vnp_Params.put("vnp_Amount", String.valueOf(vnp_Amount));
+        vnp_Params.put("vnp_CurrCode", "VND");
+        vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
+        vnp_Params.put("vnp_OrderInfo", vnp_OrderInfo);
+        vnp_Params.put("vnp_OrderType", vnp_OrderType);
+        vnp_Params.put("vnp_Locale", "vn");
+        vnp_Params.put("vnp_ReturnUrl", vNPayConfig.getReturnUrl());
+        vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+
+        java.util.Calendar cld = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Etc/GMT+7"));
+        java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat("yyyyMMddHHmmss");
+        String vnp_CreateDate = formatter.format(cld.getTime());
+        vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
+
+        java.util.List<String> fieldNames = new java.util.ArrayList<>(vnp_Params.keySet());
+        java.util.Collections.sort(fieldNames);
+        StringBuilder hashData = new StringBuilder();
+        StringBuilder query = new StringBuilder();
+        for (String fieldName : fieldNames) {
+            String fieldValue = vnp_Params.get(fieldName);
+            if (fieldValue != null && !fieldValue.isEmpty()) {
+                if (hashData.length() > 0) {
+                    hashData.append('&');
+                    query.append('&');
+                }
+                try {
+                    hashData.append(fieldName).append('=').append(java.net.URLEncoder.encode(fieldValue, java.nio.charset.StandardCharsets.UTF_8.toString()));
+                    query.append(java.net.URLEncoder.encode(fieldName, java.nio.charset.StandardCharsets.UTF_8.toString()))
+                         .append('=')
+                         .append(java.net.URLEncoder.encode(fieldValue, java.nio.charset.StandardCharsets.UTF_8.toString()));
+                } catch (java.io.UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        String queryUrl = query.toString();
+        String vnp_SecureHash = com.bookstore.config.VNPayConfig.hmacSHA512(vNPayConfig.getHashSecret(), hashData.toString());
+        queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
+        return vNPayConfig.getPayUrl() + "?" + queryUrl;
     }
 
     @GetMapping
