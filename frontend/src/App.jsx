@@ -309,7 +309,9 @@ function App() {
   const [orders, setOrders] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [checkoutInfo, setCheckoutInfo] = useState(() => JSON.parse(localStorage.getItem('checkoutInfo')) || { name: '', phone: '', address: '', note: '', paymentMethod: 'COD' });
-
+const [couponCode, setCouponCode] = useState("");
+const [discount, setDiscount] = useState(0);
+const [couponMessage, setCouponMessage] = useState("");
   useEffect(() => {
     localStorage.setItem('checkoutInfo', JSON.stringify(checkoutInfo));
   }, [checkoutInfo]);
@@ -444,6 +446,7 @@ function App() {
     }
   }
 
+
   function clearForm() {
     setContactForm({ name: '', email: '', subject: '', message: '' });
     setNewBook({ title: '', author: '', category: 'Kỹ năng', price: '', coverUrl: '', description: '', publisher: '', pages: '', year: '' });
@@ -451,12 +454,50 @@ function App() {
     setMessage('');
   }
 
-  function switchPage(p) {
-    setMessage('');
-    setIsUserDropdownOpen(false);
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    navigate(p === 'store' ? '/' : `/${p}`);
+function switchPage(p) {
+  setMessage('');
+  setIsUserDropdownOpen(false);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  navigate(p === 'store' ? '/' : `/${p}`);
+}
+
+// HÀM MỚI, CÙNG CẤP VỚI switchPage
+async function applyCoupon() {
+
+  if (!couponCode.trim()) {
+    setCouponMessage("Vui lòng nhập mã giảm giá");
+    return;
   }
+
+  try {
+
+    const res = await apiFetch("/api/coupons/apply", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        code: couponCode,
+        total: cartTotal
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setDiscount(data.discount);
+      setCouponMessage(data.message);
+    } else {
+      setDiscount(0);
+      setCouponMessage(data.message);
+    }
+
+  } catch (err) {
+    console.error(err);
+    setDiscount(0);
+    setCouponMessage("Không thể áp dụng mã giảm giá");
+  }
+}
 
   useEffect(() => {
     let timeoutId;
@@ -754,14 +795,17 @@ function App() {
       price: item.price,
       quantity: item.quantity
     }));
-
+ const shipping = cartTotal >= 300000 ? 0 : 30000;
+  const finalTotal = cartTotal + shipping - discount;
     const isMockPayment = checkoutInfo.paymentMethod === 'MOMO';
 
     const orderPayload = {
       date: new Date().toLocaleString('vi-VN'),
       userEmail: user?.email || 'guest@bookstore.com',
       items: orderItems,
-      total: cartTotal,
+       total: finalTotal,
+    couponCode: couponCode,
+    discount: discount,
       shippingInfo: checkoutInfo,
       status: (isMockPayment || checkoutInfo.paymentMethod === 'VNPAY') ? 'Chờ thanh toán' : 'Chờ chuẩn bị hàng',
       paymentStatus: (isMockPayment || checkoutInfo.paymentMethod === 'VNPAY') ? 'Chưa thanh toán' : (checkoutInfo.paymentMethod === 'BANK' ? 'Chờ xác nhận chuyển khoản' : 'Chưa thanh toán')
@@ -984,6 +1028,8 @@ const relatedBooks = selectedBook
       )
       .slice(0, 4)
   : [];
+  const shipping = cartTotal >= 300000 ? 0 : 30000;
+const finalTotal = cartTotal + shipping - discount;
   const app = {
     page,
     setPage: switchPage,
@@ -1077,7 +1123,14 @@ const relatedBooks = selectedBook
     otpCode,
     setOtpCode,
     handleVerifyOtp,
-    handleGoogleLogin
+    handleGoogleLogin,
+    couponCode,
+setCouponCode,
+discount,
+setDiscount,
+couponMessage,
+setCouponMessage,
+applyCoupon,
   };
 
   // Admin dashboard: render standalone full-page layout (no user navbar/footer)
@@ -1461,18 +1514,60 @@ const relatedBooks = selectedBook
 
                       <div className="order-summary-box">
                         <h3>Tóm tắt đơn hàng</h3>
+                        <div className="coupon-box">
+
+  <input
+    type="text"
+    placeholder="Nhập mã giảm giá"
+    value={couponCode}
+    onChange={(e) => setCouponCode(e.target.value)}
+  />
+
+  <button
+    type="button"
+    onClick={applyCoupon}
+  >
+    Áp dụng
+  </button>
+
+</div>
+
+{
+couponMessage &&
+<p className="coupon-message">
+    {couponMessage}
+</p>
+}
                         <div className="summary-box-rows">
                           <span>{cartCount} sách trong giỏ hàng:</span>
                           <strong>{cartTotal.toLocaleString('vi-VN')} đ</strong>
                         </div>
-                        <div className="summary-box-rows">
-                          <span>Phí vận chuyển:</span>
-                          <span>{cartTotal >= 300000 ? 'Miễn phí' : '30.000 đ'}</span>
-                        </div>
-                        <div className="summary-box-rows total">
-                          <span>Tổng thanh toán:</span>
-                          <strong>{(cartTotal + (cartTotal >= 300000 ? 0 : 30000)).toLocaleString('vi-VN')} đ</strong>
-                        </div>
+                       <div className="summary-box-rows">
+    <span>Phí vận chuyển:</span>
+    <span>{shipping === 0 ? "Miễn phí" : "30.000 đ"}</span>
+</div>
+<div className="summary-box-rows">
+    <span>Giảm giá:</span>
+
+    <span style={{color:"green"}}>
+        -{discount.toLocaleString("vi-VN")} đ
+    </span>
+</div>
+
+<div className="summary-box-rows">
+    <span>Giảm giá:</span>
+    <span>-{discount.toLocaleString("vi-VN")} đ</span>
+</div>
+
+<div className="summary-box-rows total">
+
+    <span>Tổng thanh toán:</span>
+
+    <strong>
+        {finalTotal.toLocaleString("vi-VN")} đ
+    </strong>
+
+</div>
                       </div>
 
                       <button type="submit" className="confirm-order-btn">Hoàn tất Đặt hàng</button>
@@ -1494,7 +1589,12 @@ const relatedBooks = selectedBook
                   <p><strong>Người nhận:</strong> {placedOrderDetails.shippingInfo.name}</p>
                   <p><strong>Số điện thoại:</strong> {placedOrderDetails.shippingInfo.phone}</p>
                   <p><strong>Địa chỉ giao:</strong> {placedOrderDetails.shippingInfo.address}</p>
-                  <p><strong>Tổng thanh toán:</strong> <strong>{(placedOrderDetails.total + (placedOrderDetails.total >= 300000 ? 0 : 30000)).toLocaleString('vi-VN')} đ</strong></p>
+                  <p>
+  <strong>Tổng thanh toán:</strong>{" "}
+  <strong>
+    {placedOrderDetails.total.toLocaleString("vi-VN")} đ
+  </strong>
+</p>
                   <p><strong>Trạng thái giao hàng:</strong> {placedOrderDetails.status}</p>
                   <p><strong>Trạng thái thanh toán:</strong> <span className={`payment-status-tag ${placedOrderDetails.paymentStatus === 'Đã thanh toán' ? 'paid' : 'unpaid'}`}>{placedOrderDetails.paymentStatus}</span></p>
                 </div>
