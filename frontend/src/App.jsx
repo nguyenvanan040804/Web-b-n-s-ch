@@ -212,6 +212,7 @@ function App() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('user', JSON.stringify(user));
@@ -333,7 +334,7 @@ function App() {
   async function fetchAllUsers() {
     if (!['admin', 'superadmin'].includes(user?.role)) return;
     try {
-      const res = await fetch('/api/users');
+      const res = await apiFetch('/api/users');
       if (res.ok) {
         const data = await res.json();
         setAllUsers(data);
@@ -347,7 +348,7 @@ function App() {
     if (!user) return;
     try {
       const url = ['admin', 'superadmin'].includes(user.role) ? '/api/orders' : `/api/orders?email=${encodeURIComponent(user.email)}`;
-      const res = await fetch(url);
+      const res = await apiFetch(url);
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
@@ -389,7 +390,7 @@ function App() {
 
   async function fetchBooks() {
     try {
-      const res = await fetch('/api/books');
+      const res = await apiFetch('/api/books');
       if (res.ok) {
         const data = await res.json();
         setBooks(data);
@@ -413,6 +414,39 @@ function App() {
     navigate(p === 'store' ? '/' : `/${p}`);
   }
 
+  useEffect(() => {
+    let timeoutId;
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      if (user) {
+        timeoutId = setTimeout(() => {
+          setUser(null);
+          setIsUserDropdownOpen(false);
+          setShowSessionExpiredModal(true);
+          switchPage('login');
+        }, 15 * 60 * 1000); // 15 minutes
+      }
+    };
+
+    if (user) {
+      resetTimer();
+      window.addEventListener('mousemove', resetTimer);
+      window.addEventListener('keydown', resetTimer);
+      window.addEventListener('click', resetTimer);
+      window.addEventListener('scroll', resetTimer);
+    } else {
+      clearTimeout(timeoutId);
+    }
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('mousemove', resetTimer);
+      window.removeEventListener('keydown', resetTimer);
+      window.removeEventListener('click', resetTimer);
+      window.removeEventListener('scroll', resetTimer);
+    };
+  }, [user]);
+
   async function handleGoogleLogin(token) {
     setLoading(true);
     setMessage('');
@@ -424,6 +458,7 @@ function App() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        setToken(data.token);
         setUser({ name: data.name, email: data.email, role: data.role, phone: data.phone, address: data.address });
         setCheckoutInfo({
           name: data.name,
@@ -489,6 +524,7 @@ function App() {
         setMessage(data.message);
         setVerifyOtpEmail(data.email);
       } else if (res.ok && data.success) {
+        setToken(data.token);
         setUser({ name: data.name, email: data.email, role: data.role, phone: data.phone, address: data.address });
         setCheckoutInfo({
           name: data.name,
@@ -565,6 +601,7 @@ function App() {
 
   function handleLogout() {
     setUser(null);
+    setToken(null);
     setMessage('Đã đăng xuất');
     setIsUserDropdownOpen(false);
     switchPage('store');
@@ -592,7 +629,7 @@ function App() {
   // Profile Edit API call
   async function handleUpdateProfile(profileData) {
     try {
-      const res = await fetch('/api/auth/profile', {
+      const res = await apiFetch('/api/auth/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData)
@@ -636,7 +673,7 @@ function App() {
         comment: reviewComment,
         timestamp: Date.now()
       };
-      const res = await fetch(`/api/books/${bookId}/reviews`, {
+      const res = await apiFetch(`/api/books/${bookId}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reviewPayload)
@@ -686,7 +723,7 @@ function App() {
     };
 
     try {
-      const res = await fetch('/api/orders', {
+      const res = await apiFetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload)
@@ -717,7 +754,7 @@ function App() {
   async function handleSimulatedPaymentSuccess() {
     if (!pendingOrderDetails) return;
     try {
-      const res = await fetch(`/api/orders/${pendingOrderDetails.id}/pay`, {
+      const res = await apiFetch(`/api/orders/${pendingOrderDetails.id}/pay`, {
         method: 'PUT'
       });
       if (res.ok) {
@@ -772,7 +809,7 @@ function App() {
         pages: Number(newBook.pages) || 0,
         year: Number(newBook.year) || 0
       };
-      const res = await fetch('/api/books', {
+      const res = await apiFetch('/api/books', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bookPayload)
@@ -793,7 +830,7 @@ function App() {
 
   async function handleUpdateOrderStatus(orderId, status) {
     try {
-      const res = await fetch(`/api/orders/${orderId}/status`, {
+      const res = await apiFetch(`/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
@@ -811,7 +848,7 @@ function App() {
   async function handleDeleteOrder(orderId) {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa đơn hàng #${orderId} không?`)) return;
     try {
-      const res = await fetch(`/api/orders/${orderId}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/orders/${orderId}`, { method: 'DELETE' });
       if (res.ok) {
         setOrders(prev => prev.filter(o => o.id !== orderId));
         toast.success(`Đã xóa đơn hàng #${orderId}`);
@@ -825,7 +862,7 @@ function App() {
 
   async function handleDeleteBook(bookId) {
     try {
-      const res = await fetch(`/api/books/${bookId}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/books/${bookId}`, { method: 'DELETE' });
       if (res.ok) {
         setBooks(prev => prev.filter(b => b.id !== bookId));
       } else {
@@ -839,7 +876,7 @@ function App() {
 
   async function handleUpdateUserRole(userId, role) {
     try {
-      const res = await fetch(`/api/users/${userId}/role`, {
+      const res = await apiFetch(`/api/users/${userId}/role`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role })
@@ -858,7 +895,7 @@ function App() {
 
   async function handleToggleUserStatus(userId, currentStatus) {
     try {
-      const res = await fetch(`/api/users/${userId}/status`, { 
+      const res = await apiFetch(`/api/users/${userId}/status`, { 
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !currentStatus })
@@ -877,7 +914,7 @@ function App() {
   async function handleDeleteUser(userId) {
     if (!window.confirm("Bạn có chắc chắn muốn xóa tài khoản này vĩnh viễn không?")) return;
     try {
-      const res = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/users/${userId}`, { method: 'DELETE' });
       const data = await res.json();
       if (res.ok && data.success) {
         setAllUsers(prev => prev.filter(u => u.id !== userId));
@@ -1524,6 +1561,26 @@ function App() {
                 Quay lại kiểm tra
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* SESSION EXPIRED MODAL */}
+      {showSessionExpiredModal && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <div className="modal-content" style={{ textAlign: 'center', padding: '40px 20px', maxWidth: '400px' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏰</div>
+            <h3 style={{ marginBottom: '16px', color: 'var(--text-main)' }}>Phiên đăng nhập hết hạn</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', lineHeight: '1.5' }}>
+              Bạn đã không hoạt động trong 15 phút. Vì lý do bảo mật, hệ thống đã tự động đăng xuất. Vui lòng đăng nhập lại để tiếp tục.
+            </p>
+            <button 
+              className="confirm-order-btn" 
+              style={{ width: '100%' }}
+              onClick={() => setShowSessionExpiredModal(false)}
+            >
+              OK
+            </button>
           </div>
         </div>
       )}

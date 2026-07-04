@@ -9,17 +9,28 @@ import './Dashboard.css';
 export default function Dashboard({ orders, books, setAdminTab }) {
 
   /* ── Computed stats ── */
-  const totalRevenue    = orders.filter(o => o.status !== 'Đã hủy đơn').reduce((s, o) => s + o.total, 0);
-  const pendingOrders   = orders.filter(o => o.status === 'Chờ chuẩn bị hàng').length;
-  const shippingOrders  = orders.filter(o => o.status === 'Đang giao hàng').length;
-  const completedOrders = orders.filter(o => o.status === 'Đã giao thành công').length;
-  const cancelledOrders = orders.filter(o => o.status === 'Đã hủy đơn').length;
+  let totalRevenue = 0, pendingOrders = 0, shippingOrders = 0, completedOrders = 0, cancelledOrders = 0;
+  const activeOrders = [];
+
+  orders.forEach(o => {
+    if (o.status === 'Chờ chuẩn bị hàng') pendingOrders++;
+    else if (o.status === 'Đang giao hàng') shippingOrders++;
+    else if (o.status === 'Đã giao thành công') completedOrders++;
+    else if (o.status === 'Đã hủy đơn') cancelledOrders++;
+
+    if (o.status !== 'Đã hủy đơn') {
+      totalRevenue += o.total;
+      activeOrders.push(o);
+    }
+  });
 
   /* ── Revenue by category ── */
   const catRev = {};
-  orders.filter(o => o.status !== 'Đã hủy đơn').forEach(order => {
+  const booksMap = new Map(books.map(b => [b.id, b]));
+  
+  activeOrders.forEach(order => {
     (order.items || []).forEach(item => {
-      const book = books.find(b => b.id === item.id);
+      const book = booksMap.get(item.id);
       const cat  = book?.category || 'Khác';
       catRev[cat] = (catRev[cat] || 0) + item.price * item.quantity;
     });
