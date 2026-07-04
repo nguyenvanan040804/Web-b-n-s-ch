@@ -256,6 +256,7 @@ function App() {
       setToken(null);
       setIsUserDropdownOpen(false);
       setShowSessionExpiredModal(true);
+      navigate('/login');
     }
     return res;
   };
@@ -463,6 +464,7 @@ function App() {
       if (user) {
         timeoutId = setTimeout(() => {
           setUser(null);
+          setToken(null);
           setIsUserDropdownOpen(false);
           setShowSessionExpiredModal(true);
           switchPage('login');
