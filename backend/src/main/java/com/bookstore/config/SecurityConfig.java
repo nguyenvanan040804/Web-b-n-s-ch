@@ -83,34 +83,3 @@ public class SecurityConfig {
 return http.build();
     }
 }
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> {})
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // Public endpoints
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/google-login", "/api/auth/verify-otp", "/api/auth/forgot-password").permitAll()
-                .requestMatchers("/api/payment/vnpay-callback").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/books").permitAll()
-                
-                // Protected endpoints
-                .requestMatchers("/api/auth/refresh").authenticated()
-                .requestMatchers("/api/auth/profile").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/orders").authenticated()
-                .requestMatchers(HttpMethod.GET, "/api/orders").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/books/*/reviews").authenticated()
-                
-                // Admin endpoints
-                .requestMatchers(HttpMethod.POST, "/api/books").hasAnyRole("ADMIN", "SUPERADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/books/*").hasAnyRole("ADMIN", "SUPERADMIN")
-                .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "SUPERADMIN")
-                
-                // Permit anything else for ease of development, but secure the sensitive ones above
-                .anyRequest().permitAll()
-            )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        
-        return http.build();
-    }
-}

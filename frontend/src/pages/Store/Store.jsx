@@ -2,6 +2,7 @@ import React from 'react';
 import './Store.css';
 import { useNavigate } from "react-router-dom";
 import { addToWishlist } from "../../api/wishlistApi";
+import SearchBar from "../../components/SearchBar/SearchBar";
 
 export default function Store({ app }) {
 
@@ -62,6 +63,10 @@ export default function Store({ app }) {
             Miễn phí vận chuyển toàn quốc
             cho đơn từ 300.000đ.
           </p>
+
+          <div className="banner-search">
+            <SearchBar books={filteredBooks} onBookSelect={setSelectedBook} />
+          </div>
         </div>
       </div>
 
@@ -73,41 +78,7 @@ export default function Store({ app }) {
 
           <div className="sidebar-section">
 
-            <h3>Tìm kiếm</h3>
 
-            <div className="search-bar-container">
-
-              <svg
-                className="search-icon-svg"
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-              >
-
-                <path
-                  fill="currentColor"
-                  d="M15.5 14h-.79l-.28-.27A6.471
-                  6.471 0 0016 9.5
-                  6.5 6.5 0 109.5 16
-                  c1.61 0 3.09-.59
-                  4.23-1.57l.27.28v.79
-                  l5 4.99L20.49
-                  19l-4.99-5z"
-                />
-
-              </svg>
-
-              <input
-                className="search-input"
-                type="search"
-                placeholder="Tìm sách..."
-                value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
-              />
-
-            </div>
 
           </div>
 
@@ -286,6 +257,17 @@ export default function Store({ app }) {
                       {book.category}
                     </span>
 
+                    <button
+                      className="wishlist-btn-corner"
+                      title="Thêm vào yêu thích"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddWishlist(e, book.id);
+                      }}
+                    >
+                      ❤️
+                    </button>
+
                   </div>
 
                   <div className="book-info">
@@ -344,16 +326,6 @@ export default function Store({ app }) {
                       </span>
 
                       <div className="book-actions">
-
-                        <button
-                          className="wishlist-btn"
-                          title="Thêm vào yêu thích"
-                          onClick={(e) =>
-                            handleAddWishlist(e, book.id)
-                          }
-                        >
-                          ❤️
-                        </button>
 
                         <button
                           className="add-btn"

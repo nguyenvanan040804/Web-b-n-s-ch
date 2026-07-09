@@ -27,8 +27,6 @@ public class User {
     private String authProvider; // LOCAL or GOOGLE
     private boolean isActive;
 
-    private boolean isActive;
-
     public User() {
         this.role = "user";
         this.phone = "";
@@ -153,5 +151,4 @@ public class User {
     public void setActive(boolean active) {
         this.isActive = active;
     }
-}
 }

@@ -17,6 +17,7 @@ import Cart from './pages/Cart/Cart';
 import Profile from './pages/Profile/Profile';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import Wishlist from "./pages/Wishlist/Wishlist";
+import BookPreview from './components/BookPreview/BookPreview';
 
 const DEFAULT_BOOKS = [
   {
@@ -305,6 +306,7 @@ function App() {
 
   // Checkout and Mock Payment state
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState('form');
   const [orders, setOrders] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
@@ -1256,9 +1258,18 @@ function App() {
             <button className="close-modal-btn" onClick={() => { setSelectedBook(null); setReviewMessage(''); }}>×</button>
 
             <div className="book-detail-grid">
-              <div className="detail-cover-sec">
-                <img src={selectedBook.coverUrl} alt={selectedBook.title} />
-                <span className="detail-category">{selectedBook.category}</span>
+              <div className="detail-left-col">
+                <div className="detail-cover-sec">
+                  <img src={selectedBook.coverUrl} alt={selectedBook.title} />
+                  <span className="detail-category">{selectedBook.category}</span>
+                </div>
+                <button 
+                  className="read-preview-btn"
+                  onClick={() => setIsPreviewOpen(true)}
+                  style={{ marginTop: '15px', width: '100%', backgroundColor: '#3498db', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}
+                >
+                  Đọc thử
+                </button>
               </div>
 
               <div className="detail-info-sec">
@@ -1715,6 +1726,23 @@ function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* BOOK PREVIEW MODAL */}
+      {isPreviewOpen && selectedBook && (
+        <BookPreview 
+          book={{
+            title: selectedBook.title,
+            author: selectedBook.author,
+            imageUrl: selectedBook.coverUrl
+          }}
+          onClose={() => setIsPreviewOpen(false)}
+          onAddToCart={(bookData) => {
+            addToCart(selectedBook);
+            setSelectedBook(null);
+            setIsPreviewOpen(false);
+          }}
+        />
       )}
 
       {/* SESSION EXPIRED MODAL */}
