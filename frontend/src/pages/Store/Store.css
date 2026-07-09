@@ -233,6 +233,27 @@
   font-size: 0.92rem;
 }
 
+.wishlist-page-btn {
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.wishlist-page-btn:hover {
+  background: #fee2e2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
 .results-count {
   font-size: 0.88rem;
   color: var(--text-muted);
@@ -379,6 +400,45 @@
   font-size: 0.9rem;
   font-weight: 800;
   color: var(--primary-light);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.book-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wishlist-btn-corner {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 0.9rem;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+
+.wishlist-btn-corner:hover {
+  background: #fee2e2;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.wishlist-btn-corner:active {
+  transform: scale(0.95);
 }
 
 .add-btn {
@@ -394,6 +454,8 @@
   align-items: center;
   gap: 4px;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .add-btn:hover {
@@ -448,9 +510,19 @@
 .banner-content p {
   margin: 0;
   font-size: 1.02rem;
-  max-width: 680px;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 500px;
   line-height: 1.6;
-  opacity: 0.85;
+}
+
+.banner-search {
+  margin-top: 24px;
+  max-width: 500px;
+}
+
+.banner-search .global-search-container {
+  margin: 0;
+  max-width: 100%;
 }
 
 .empty-state {

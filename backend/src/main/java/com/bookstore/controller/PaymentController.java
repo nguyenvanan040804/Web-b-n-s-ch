@@ -20,10 +20,12 @@ public class PaymentController {
 
     private final VNPayConfig vNPayConfig;
     private final OrderRepository orderRepository;
+    private final com.bookstore.service.EmailService emailService;
 
-    public PaymentController(VNPayConfig vNPayConfig, OrderRepository orderRepository) {
+    public PaymentController(VNPayConfig vNPayConfig, OrderRepository orderRepository, com.bookstore.service.EmailService emailService) {
         this.vNPayConfig = vNPayConfig;
         this.orderRepository = orderRepository;
+        this.emailService = emailService;
     }
 
     @GetMapping("/vnpay-callback")
@@ -70,6 +72,9 @@ public class PaymentController {
                     orderRepository.save(order);
                     isSuccess = true;
                     System.out.println("Payment successful for order: " + orderId);
+                    
+                    // Gửi email xác nhận
+                    emailService.sendOrderConfirmationEmail(order);
                 } else {
                     System.out.println("Order not found in database: " + orderId);
                 }

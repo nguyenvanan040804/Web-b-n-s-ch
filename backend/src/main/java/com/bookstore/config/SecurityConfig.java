@@ -47,15 +47,15 @@ public class SecurityConfig {
                                 "/api/payment/vnpay-callback"
                         ).permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/books")
-                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/books").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
 
                         // User APIs
                         .requestMatchers("/api/auth/profile").authenticated()
                         .requestMatchers("/api/auth/refresh").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/orders").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/orders").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/books/*/reviews").authenticated()
+                        .requestMatchers("/api/wishlist/**").authenticated()
 
                         // Admin APIs
                         .requestMatchers(HttpMethod.POST, "/api/books")

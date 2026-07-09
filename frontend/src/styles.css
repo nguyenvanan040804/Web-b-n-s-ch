@@ -1703,3 +1703,47 @@ input:focus, select:focus, textarea:focus {
 .related-book-card button:hover{
     background:#125ca5;
 }
+
+/* Coupon Button Styling */
+.apply-coupon-btn {
+    padding: 8px 16px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: 8px;
+}
+
+.apply-coupon-btn:hover {
+    background: var(--primary-dark, #2563eb);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+}
+
+.apply-coupon-btn:active {
+    transform: translateY(0);
+}
+.coupon-box {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.coupon-box input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.coupon-box input:focus {
+    border-color: var(--primary);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

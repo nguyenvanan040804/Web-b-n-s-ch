@@ -18,16 +18,18 @@ public class ShippingInfo {
     private String address;
     private String note;
     private String paymentMethod;
+    private String email;
 
     public ShippingInfo() {
     }
 
-    public ShippingInfo(String name, String phone, String address, String note, String paymentMethod) {
+    public ShippingInfo(String name, String phone, String address, String note, String paymentMethod, String email) {
         this.name = name;
         this.phone = phone;
         this.address = address;
         this.note = note;
         this.paymentMethod = paymentMethod;
+        this.email = email;
     }
 
     public Long getId() {
@@ -76,5 +78,13 @@ public class ShippingInfo {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

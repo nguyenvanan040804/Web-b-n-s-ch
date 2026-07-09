@@ -1,0 +1,150 @@
+.book-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(5px);
+}
+
+.book-preview-container {
+  position: relative;
+  width: 90%;
+  max-width: 800px;
+  height: 75vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-close-btn {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: opacity 0.3s;
+  z-index: 10000;
+}
+
+.preview-close-btn:hover {
+  opacity: 0.7;
+}
+
+.preview-flipbook {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background-color: transparent !important;
+}
+
+.preview-page {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: inset -2px 0 5px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.preview-page-inner {
+  padding: 30px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.page-number {
+  position: absolute;
+  bottom: 15px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.preview-page-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+.preview-page-cover img {
+  max-width: 80%;
+  max-height: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  margin-bottom: 20px;
+}
+
+.preview-page-cover h2 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.preview-page-cover p {
+  color: #666;
+  font-style: italic;
+}
+
+.preview-page-content {
+  line-height: 1.6;
+  color: #333;
+}
+
+.preview-page-content h3 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.preview-page-content p {
+  margin-bottom: 15px;
+  text-align: justify;
+}
+
+.preview-page-content.last-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  height: 100%;
+}
+
+.cta-text {
+  font-size: 1.2rem;
+  color: #e74c3c;
+  font-weight: bold;
+  margin: 30px 0 !important;
+  text-align: center !important;
+}
+
+.cta-add-to-cart {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+}
+
+.cta-add-to-cart:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+}

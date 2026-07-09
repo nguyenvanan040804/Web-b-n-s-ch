@@ -45,12 +45,11 @@ public class ForgotPasswordController {
                     userRepository.findByEmail(email);
 
             if (optionalUser.isEmpty()) {
-
                 response.put("success", false);
                 response.put("message", "Email không tồn tại");
-
                 return response;
             }
+            User user = optionalUser.get();
 
             String otp = String.valueOf(
                     100000 + new Random().nextInt(900000)
@@ -126,13 +125,10 @@ public class ForgotPasswordController {
                     userRepository.findByEmail(email);
 
             if (optionalUser.isEmpty()) {
-
                 response.put("success", false);
                 response.put("message", "Không tìm thấy user");
-
                 return response;
             }
-
             User user = optionalUser.get();
 
             user.setPassword(

@@ -21,17 +21,16 @@ import java.util.Optional;
 public class OrderController {
 
     private final OrderRepository orderRepository;
-private final VNPayConfig vNPayConfig;
-private final CouponService couponService;
+    private final VNPayConfig vNPayConfig;
+    private final com.bookstore.service.EmailService emailService;
+    private final CouponService couponService;
 
-    public OrderController(OrderRepository orderRepository,
-                       VNPayConfig vNPayConfig,
-                       CouponService couponService) {
-
-    this.orderRepository = orderRepository;
-    this.vNPayConfig = vNPayConfig;
-    this.couponService = couponService;
-}
+    public OrderController(OrderRepository orderRepository, VNPayConfig vNPayConfig, com.bookstore.service.EmailService emailService, CouponService couponService) {
+        this.orderRepository = orderRepository;
+        this.vNPayConfig = vNPayConfig;
+        this.emailService = emailService;
+        this.couponService = couponService;
+    }
 
     @PostMapping
     public ResponseEntity<?> placeOrder(@RequestBody Order order) {
@@ -105,6 +104,9 @@ response.put("discount",
         if (order.getShippingInfo() != null && "VNPAY".equalsIgnoreCase(order.getShippingInfo().getPaymentMethod())) {
             String vnpayUrl = generateVNPayUrl(savedOrder);
             response.put("paymentUrl", vnpayUrl);
+        } else {
+            // Gửi email xác nhận ngay lập tức cho các phương thức thanh toán không phải VNPay (ví dụ: COD, BANK)
+            emailService.sendOrderConfirmationEmail(savedOrder);
         }
         
         return ResponseEntity.ok(response);

@@ -55,6 +55,7 @@ export default function Orders({ orders, handleUpdateOrderStatus, handleDeleteOr
                   <th>Khách hàng</th>
                   <th>Sản phẩm</th>
                   <th>Tổng tiền</th>
+                  <th>Thanh toán</th>
                   <th>Ngày đặt</th>
                   <th>Trạng thái</th>
                   <th>Cập nhật</th>
@@ -80,6 +81,11 @@ export default function Orders({ orders, handleUpdateOrderStatus, handleDeleteOr
                       <strong>
                         {(ord.total + (ord.total >= 300000 ? 0 : 30000)).toLocaleString('vi-VN')} đ
                       </strong>
+                    </td>
+                    <td>
+                      <span className="adm-sub">
+                        {ord.shippingInfo?.paymentMethod || 'COD'}
+                      </span>
                     </td>
                     <td className="adm-sub">{ord.date?.split(' vào ')[0] || ord.date}</td>
                     <td>
