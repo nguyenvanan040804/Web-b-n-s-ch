@@ -67,13 +67,16 @@ export default function AddBook({ newBook, setNewBook, handleCreateBook, adminMe
           </div>
 
           <div className="form-group">
-            <label htmlFor="new-cover">URL Ảnh bìa</label>
+            <label htmlFor="new-cover">Ảnh bìa (Tải lên từ máy tính)</label>
             <input
-              id="new-cover" type="text"
-              placeholder="Bỏ trống sẽ dùng ảnh Unsplash mặc định"
-              value={newBook.coverUrl}
-              onChange={e => setNewBook({ ...newBook, coverUrl: e.target.value })}
+              id="new-cover" type="file" accept="image/*"
+              onChange={e => {
+                if (e.target.files && e.target.files[0]) {
+                  setNewBook({ ...newBook, coverFile: e.target.files[0] });
+                }
+              }}
             />
+            {newBook.coverFile && <p style={{fontSize: '13px', color: '#666', marginTop: '4px'}}>Đã chọn: {newBook.coverFile.name}</p>}
           </div>
 
           <div className="form-group">
@@ -103,6 +106,16 @@ export default function AddBook({ newBook, setNewBook, handleCreateBook, adminMe
               placeholder="Ví dụ: 2023"
               value={newBook.year}
               onChange={e => setNewBook({ ...newBook, year: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="new-weight">Khối lượng (gram)</label>
+            <input
+              id="new-weight" type="number"
+              placeholder="Ví dụ: 350"
+              value={newBook.weight}
+              onChange={e => setNewBook({ ...newBook, weight: e.target.value })}
             />
           </div>
 

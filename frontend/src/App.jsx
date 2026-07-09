@@ -31,6 +31,7 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Tổng hợp TP.HCM',
     pages: 320,
     year: 2021,
+    weight: 300,
     reviews: [],
     averageRating: 0.0,
     salesCount: 120
@@ -46,6 +47,7 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Hội Nhà Văn',
     pages: 228,
     year: 2020,
+    weight: 250,
     reviews: [],
     averageRating: 0.0,
     salesCount: 340
@@ -61,6 +63,7 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Trẻ',
     pages: 400,
     year: 2019,
+    weight: 400,
     reviews: [],
     averageRating: 0.0,
     salesCount: 210
@@ -76,6 +79,7 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Kim Đồng',
     pages: 102,
     year: 2022,
+    weight: 150,
     reviews: [],
     averageRating: 0.0,
     salesCount: 95
@@ -91,6 +95,7 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Thế Giới',
     pages: 560,
     year: 2021,
+    weight: 550,
     reviews: [],
     averageRating: 0.0,
     salesCount: 180
@@ -106,6 +111,7 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Trẻ',
     pages: 200,
     year: 2018,
+    weight: 200,
     reviews: [],
     averageRating: 0.0,
     salesCount: 88
@@ -121,6 +127,7 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Trẻ',
     pages: 380,
     year: 2021,
+    weight: 350,
     reviews: [],
     averageRating: 0.0,
     salesCount: 145
@@ -136,6 +143,7 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Thế Giới',
     pages: 290,
     year: 2020,
+    weight: 280,
     reviews: [],
     averageRating: 0.0,
     salesCount: 75
@@ -151,6 +159,7 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Hội Nhà Văn',
     pages: 250,
     year: 2019,
+    weight: 260,
     reviews: [],
     averageRating: 0.0,
     salesCount: 290
@@ -166,6 +175,7 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Kim Đồng',
     pages: 340,
     year: 2022,
+    weight: 320,
     reviews: [],
     averageRating: 0.0,
     salesCount: 165
@@ -181,6 +191,7 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Hội Nhà Văn',
     pages: 450,
     year: 2021,
+    weight: 450,
     reviews: [],
     averageRating: 0.0,
     salesCount: 195
@@ -196,11 +207,79 @@ const DEFAULT_BOOKS = [
     publisher: 'NXB Tổng hợp TP.HCM',
     pages: 180,
     year: 2022,
+    weight: 180,
     reviews: [],
     averageRating: 0.0,
     salesCount: 220
   }
 ];
+
+// Tính phí vận chuyển thực tế (Chuẩn GHTK)
+export function calculateShippingFee(cart, provinceCode, districtName) {
+    if (!cart || cart.length === 0) return 0;
+    
+    const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalBooks = cart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    // Khuyến mãi freeship (ưu tiên cao nhất)
+    const SHOP_PROVINCE_CODE = "79"; // TP.HCM
+    if (provinceCode === SHOP_PROVINCE_CODE && cartTotal >= 300000) return 0;
+    if (cartTotal >= 500000) return 0;
+    
+    let baseFee = 30000; 
+    let overweightFee = 5000; // Phí mỗi 500g vượt mức (2 cuốn sách)
+    
+    if (!provinceCode) return baseFee; // Chưa chọn tỉnh
+    
+    // 1. Phân vùng địa lý
+    const pCodeNum = parseInt(provinceCode);
+    let region = ""; 
+    
+    if (provinceCode === SHOP_PROVINCE_CODE) {
+        region = "HCM";
+    } else if (pCodeNum >= 70 && pCodeNum <= 96) {
+        region = "SOUTH";
+    } else if (pCodeNum >= 38 && pCodeNum <= 68) {
+        region = "CENTRAL";
+    } else if (pCodeNum >= 1 && pCodeNum <= 37) {
+        region = "NORTH";
+    } else {
+        region = "OTHER";
+    }
+    
+    // 2. Tuyến phát (Huyện / Xã thường phụ thu 5k so với Quận / Thành phố)
+    const isRural = districtName && (districtName.toLowerCase().includes("huyện") || districtName.toLowerCase().includes("thôn") || districtName.toLowerCase().includes("xã"));
+    const ruralSurcharge = isRural ? 5000 : 0;
+    
+    // Thiết lập Base Fee và Overweight Fee
+    if (region === "HCM") {
+        baseFee = isRural ? 22000 : 16500;
+        overweightFee = 2500;
+    } else if (region === "SOUTH") {
+        baseFee = 30000 + ruralSurcharge;
+        overweightFee = 5000;
+    } else if (region === "CENTRAL") {
+        baseFee = 32000 + ruralSurcharge;
+        overweightFee = 5000;
+    } else if (region === "NORTH") {
+        baseFee = 35000 + ruralSurcharge;
+        overweightFee = 5000;
+    }
+    
+    // 3. Khối lượng (Step Weight)
+    // Tính tổng khối lượng từ giỏ hàng (nếu sách không có weight, mặc định 350g)
+    const totalWeightGrams = cart.reduce((sum, item) => sum + ((item.weight || 350) * item.quantity), 0) + 100; // 100g hộp
+    let extraFee = 0;
+    
+    if (totalWeightGrams > 500) {
+        // Cứ mỗi 500g tiếp theo cộng thêm phí
+        const overweight = totalWeightGrams - 500;
+        const steps = Math.ceil(overweight / 500);
+        extraFee = steps * overweightFee;
+    }
+    
+    return baseFee + extraFee;
+}
 
 function App() {
   const navigate = useNavigate();
@@ -312,6 +391,7 @@ function App() {
   const [allUsers, setAllUsers] = useState([]);
   const [checkoutInfo, setCheckoutInfo] = useState(() => JSON.parse(localStorage.getItem('checkoutInfo')) || { name: '', phone: '', email: '', provinceCode: '', districtCode: '', wardCode: '', specificAddress: '', address: '', note: '', paymentMethod: 'COD' });
   const [provincesData, setProvincesData] = useState([]);
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
 
   useEffect(() => {
     fetch('https://provinces.open-api.vn/api/?depth=3')
@@ -320,6 +400,9 @@ function App() {
       .catch(err => console.error("Lỗi tải dữ liệu tỉnh thành:", err));
   }, []);
 
+  const [couponCode, setCouponCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [couponMessage, setCouponMessage] = useState("");
   useEffect(() => {
     localStorage.setItem('checkoutInfo', JSON.stringify(checkoutInfo));
   }, [checkoutInfo]);
@@ -345,7 +428,7 @@ function App() {
   const [verifyOtpEmail, setVerifyOtpEmail] = useState(null);
   const [otpCode, setOtpCode] = useState('');
 
-  const [newBook, setNewBook] = useState({ title: '', author: '', category: 'Kỹ năng', price: '', coverUrl: '', description: '', publisher: '', pages: '', year: '' });
+  const [newBook, setNewBook] = useState({ title: '', author: '', category: 'Kỹ năng', price: '', coverUrl: '', description: '', publisher: '', pages: '', year: '', weight: 350 });
   
   const adminMessage = '';
   const setAdminMessage = (msg) => {
@@ -454,6 +537,7 @@ function App() {
     }
   }
 
+
   function clearForm() {
     setContactForm({ name: '', email: '', subject: '', message: '' });
     setNewBook({ title: '', author: '', category: 'Kỹ năng', price: '', coverUrl: '', description: '', publisher: '', pages: '', year: '' });
@@ -461,12 +545,50 @@ function App() {
     setMessage('');
   }
 
-  function switchPage(p) {
-    setMessage('');
-    setIsUserDropdownOpen(false);
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    navigate(p === 'store' ? '/' : `/${p}`);
+function switchPage(p) {
+  setMessage('');
+  setIsUserDropdownOpen(false);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  navigate(p === 'store' ? '/' : `/${p}`);
+}
+
+// HÀM MỚI, CÙNG CẤP VỚI switchPage
+async function applyCoupon() {
+
+  if (!couponCode.trim()) {
+    setCouponMessage("Vui lòng nhập mã giảm giá");
+    return;
   }
+
+  try {
+
+    const res = await apiFetch("/api/coupons/apply", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        code: couponCode,
+        total: cartTotal
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setDiscount(data.discount);
+      setCouponMessage(data.message);
+    } else {
+      setDiscount(0);
+      setCouponMessage(data.message);
+    }
+
+  } catch (err) {
+    console.error(err);
+    setDiscount(0);
+    setCouponMessage("Không thể áp dụng mã giảm giá");
+  }
+}
 
   useEffect(() => {
     let timeoutId;
@@ -772,19 +894,22 @@ function App() {
   async function handleCheckoutSubmit(e) {
     if (e && e.preventDefault) e.preventDefault();
     if (cart.length === 0) { setMessage('Giỏ hàng trống'); return; }
+    if (isSubmittingOrder) return;
     
+    setIsSubmittingOrder(true);
     const orderItems = cart.map(item => ({
       id: item.id,
       title: item.title,
       price: item.price,
       quantity: item.quantity
     }));
-
-    const isMockPayment = checkoutInfo.paymentMethod === 'MOMO';
-
     const province = provincesData.find(p => p.code == checkoutInfo.provinceCode);
     const district = province?.districts?.find(d => d.code == checkoutInfo.districtCode);
     const ward = district?.wards?.find(w => w.code == checkoutInfo.wardCode);
+
+    const shipping = calculateShippingFee(cart, checkoutInfo.provinceCode, district?.name);
+    const finalTotal = cartTotal + shipping - discount;
+    const isMockPayment = checkoutInfo.paymentMethod === 'MOMO';
     
     let fullAddressParts = [];
     if (checkoutInfo.specificAddress) fullAddressParts.push(checkoutInfo.specificAddress);
@@ -795,15 +920,21 @@ function App() {
     const finalAddress = fullAddressParts.length > 0 ? fullAddressParts.join(', ') : checkoutInfo.address;
 
     const finalShippingInfo = {
-      ...checkoutInfo,
-      address: finalAddress
+      name: checkoutInfo.name,
+      phone: checkoutInfo.phone,
+      email: checkoutInfo.email,
+      address: finalAddress,
+      note: checkoutInfo.note,
+      paymentMethod: checkoutInfo.paymentMethod
     };
 
     const orderPayload = {
       date: new Date().toLocaleString('vi-VN'),
       userEmail: user?.email || 'guest@bookstore.com',
       items: orderItems,
-      total: cartTotal,
+      total: finalTotal,
+      couponCode: couponCode,
+      discount: discount,
       shippingInfo: finalShippingInfo,
       status: (isMockPayment || checkoutInfo.paymentMethod === 'VNPAY') ? 'Chờ thanh toán' : 'Chờ chuẩn bị hàng',
       paymentStatus: (isMockPayment || checkoutInfo.paymentMethod === 'VNPAY') ? 'Chưa thanh toán' : (checkoutInfo.paymentMethod === 'BANK' ? 'Chờ xác nhận chuyển khoản' : 'Chưa thanh toán')
@@ -836,6 +967,8 @@ function App() {
     } catch (err) {
       console.error("Lỗi đặt hàng:", err);
       setMessage('Không thể kết nối đến máy chủ.');
+    } finally {
+      setIsSubmittingOrder(false);
     }
   }
 
@@ -887,27 +1020,49 @@ function App() {
     if (e && e.preventDefault) e.preventDefault();
     setAdminMessage('');
     try {
+      let uploadedFileName = '';
+      if (newBook.coverFile) {
+        const formData = new FormData();
+        formData.append('file', newBook.coverFile);
+        
+        const uploadRes = await fetch('http://localhost:8080/api/images/upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (uploadRes.ok) {
+          uploadedFileName = await uploadRes.text();
+        } else {
+          setAdminMessage('Lỗi khi tải ảnh lên.');
+          return;
+        }
+      }
+
       const bookPayload = {
         title: newBook.title,
         author: newBook.author,
         category: newBook.category,
         price: Number(newBook.price) || 0,
-        coverUrl: newBook.coverUrl,
+        coverUrl: uploadedFileName ? `http://localhost:8080/uploads/images/${uploadedFileName}` : newBook.coverUrl,
         description: newBook.description,
         publisher: newBook.publisher,
         pages: Number(newBook.pages) || 0,
-        year: Number(newBook.year) || 0
+        year: Number(newBook.year) || 0,
+        weight: Number(newBook.weight) || 350,
+        images: uploadedFileName ? [{ fileName: uploadedFileName, isCover: true }] : []
       };
+
       const res = await apiFetch('/api/books', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bookPayload)
       });
+      
       if (res.ok) {
         const savedBook = await res.json();
         setBooks((prev) => [savedBook, ...prev]);
         setAdminMessage('Đã thêm sách mới thành công');
-        setNewBook({ title: '', author: '', category: 'Kỹ năng', price: '', coverUrl: '', description: '', publisher: '', pages: '', year: '' });
+        setNewBook({ title: '', author: '', category: 'Kỹ năng', price: '', coverUrl: '', coverFile: null, description: '', publisher: '', pages: '', year: '', weight: 350 });
       } else {
         setAdminMessage('Lỗi khi thêm sách vào backend');
       }
@@ -1016,7 +1171,20 @@ function App() {
       toast.error('Không thể kết nối đến máy chủ.');
     }
   }
-
+const relatedBooks = selectedBook
+  ? books
+      .filter(
+        (book) =>
+          book.id !== selectedBook.id &&
+          (book.category === selectedBook.category ||
+            book.author === selectedBook.author)
+      )
+      .slice(0, 4)
+  : [];
+  const province = provincesData.find(p => p.code == checkoutInfo.provinceCode);
+  const district = province?.districts?.find(d => d.code == checkoutInfo.districtCode);
+  const shipping = calculateShippingFee(cart, checkoutInfo.provinceCode, district?.name);
+  const finalTotal = cartTotal + shipping - discount;
   const app = {
     page,
     setPage: switchPage,
@@ -1110,7 +1278,14 @@ function App() {
     otpCode,
     setOtpCode,
     handleVerifyOtp,
-    handleGoogleLogin
+    handleGoogleLogin,
+    couponCode,
+setCouponCode,
+discount,
+setDiscount,
+couponMessage,
+setCouponMessage,
+applyCoupon,
   };
 
   // Admin dashboard: render standalone full-page layout (no user navbar/footer)
@@ -1312,7 +1487,43 @@ function App() {
             {/* Reviews Section inside modal */}
             <div className="book-reviews-section">
               <h3>Phản hồi & Đánh giá ({selectedBook.reviews?.length || 0})</h3>
-              
+              {/* ================= SÁCH LIÊN QUAN ================= */}
+
+<div className="related-books-section">
+  <h3>📚 Sách liên quan</h3>
+
+  <div className="related-books-grid">
+    {relatedBooks.length > 0 ? (
+      relatedBooks.map((book) => (
+        <div
+          key={book.id}
+          className="related-book-card"
+        >
+          <img
+            src={book.coverUrl}
+            alt={book.title}
+          />
+
+          <h4>{book.title}</h4>
+
+          <p>{book.author}</p>
+
+          <strong>
+            {book.price.toLocaleString("vi-VN")} đ
+          </strong>
+
+          <button
+            onClick={() => setSelectedBook(book)}
+          >
+            Xem chi tiết
+          </button>
+        </div>
+      ))
+    ) : (
+      <p>Không có sách liên quan.</p>
+    )}
+  </div>
+</div>
               {/* Form gửi đánh giá */}
               {user ? (
                 <form onSubmit={(e) => handleAddReview(selectedBook.id, e)} className="add-review-form">
@@ -1531,21 +1742,73 @@ function App() {
 
                       <div className="order-summary-box">
                         <h3>Tóm tắt đơn hàng</h3>
+                        <div className="coupon-box">
+
+  <input
+    type="text"
+    placeholder="Nhập mã giảm giá"
+    value={couponCode}
+    onChange={(e) => setCouponCode(e.target.value)}
+  />
+
+  <button
+    type="button"
+    onClick={applyCoupon}
+    className="btn apply-coupon-btn"
+  >
+    Áp dụng
+  </button>
+
+</div>
+
+{
+couponMessage &&
+<p className="coupon-message">
+    {couponMessage}
+</p>
+}
                         <div className="summary-box-rows">
                           <span>{cartCount} sách trong giỏ hàng:</span>
                           <strong>{cartTotal.toLocaleString('vi-VN')} đ</strong>
                         </div>
-                        <div className="summary-box-rows">
-                          <span>Phí vận chuyển:</span>
-                          <span>{cartTotal >= 300000 ? 'Miễn phí' : '30.000 đ'}</span>
-                        </div>
-                        <div className="summary-box-rows total">
-                          <span>Tổng thanh toán:</span>
-                          <strong>{(cartTotal + (cartTotal >= 300000 ? 0 : 30000)).toLocaleString('vi-VN')} đ</strong>
-                        </div>
+                       <div className="summary-box-rows">
+    <span>Phí vận chuyển:</span>
+    <span>{shipping === 0 ? "Miễn phí" : shipping.toLocaleString('vi-VN') + " đ"}</span>
+</div>
+<div className="summary-box-rows">
+    <span>Giảm giá:</span>
+
+    <span style={{color:"green"}}>
+        -{discount.toLocaleString("vi-VN")} đ
+    </span>
+</div>
+
+<div className="summary-box-rows">
+    <span>Giảm giá:</span>
+    <span>-{discount.toLocaleString("vi-VN")} đ</span>
+</div>
+
+<div className="summary-box-rows total">
+
+    <span>Tổng thanh toán:</span>
+
+    <strong>
+        {finalTotal.toLocaleString("vi-VN")} đ
+    </strong>
+
+</div>
                       </div>
 
-                      <button type="submit" className="confirm-order-btn">Hoàn tất Đặt hàng</button>
+                      <button type="submit" className="confirm-order-btn" disabled={isSubmittingOrder}>
+                        {isSubmittingOrder ? (
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <span className="spinner" style={{ width: '16px', height: '16px', border: '2px solid #fff', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></span>
+                            Đang xử lý...
+                          </span>
+                        ) : (
+                          "Hoàn tất Đặt hàng"
+                        )}
+                      </button>
                     </div>
                   </div>
                 </form>
@@ -1564,7 +1827,12 @@ function App() {
                   <p><strong>Người nhận:</strong> {placedOrderDetails.shippingInfo.name}</p>
                   <p><strong>Số điện thoại:</strong> {placedOrderDetails.shippingInfo.phone}</p>
                   <p><strong>Địa chỉ giao:</strong> {placedOrderDetails.shippingInfo.address}</p>
-                  <p><strong>Tổng thanh toán:</strong> <strong>{(placedOrderDetails.total + (placedOrderDetails.total >= 300000 ? 0 : 30000)).toLocaleString('vi-VN')} đ</strong></p>
+                  <p>
+  <strong>Tổng thanh toán:</strong>{" "}
+  <strong>
+    {placedOrderDetails.total.toLocaleString("vi-VN")} đ
+  </strong>
+</p>
                   <p><strong>Trạng thái giao hàng:</strong> {placedOrderDetails.status}</p>
                   <p><strong>Trạng thái thanh toán:</strong> <span className={`payment-status-tag ${placedOrderDetails.paymentStatus === 'Đã thanh toán' ? 'paid' : 'unpaid'}`}>{placedOrderDetails.paymentStatus}</span></p>
                 </div>

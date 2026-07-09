@@ -1,6 +1,8 @@
 package com.bookstore.model;
 
 import jakarta.persistence.*;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "users")
@@ -26,6 +28,13 @@ public class User {
 
     private String authProvider; // LOCAL or GOOGLE
     private boolean isActive;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_wishlist",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "book_id"))
+    private Set<Book> wishlist = new HashSet<>();
+
 
     public User() {
         this.role = "user";
@@ -150,5 +159,13 @@ public class User {
 
     public void setActive(boolean active) {
         this.isActive = active;
+    }
+
+    public Set<Book> getWishlist() {
+        return wishlist;
+    }
+
+    public void setWishlist(Set<Book> wishlist) {
+        this.wishlist = wishlist;
     }
 }

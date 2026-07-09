@@ -24,7 +24,6 @@ public class ForgotPasswordController {
     @Autowired
     private UserRepository userRepository;
 
-    // Lưu OTP tạm
     private final Map<String, String> otpStore = new HashMap<>();
 
     private final BCryptPasswordEncoder passwordEncoder =
@@ -42,17 +41,16 @@ public class ForgotPasswordController {
 
             String email = body.get("email");
 
-            Optional<User> userOpt =
+            Optional<User> optionalUser =
                     userRepository.findByEmail(email);
 
-            if (userOpt.isEmpty()) {
+            if (optionalUser.isEmpty()) {
                 response.put("success", false);
                 response.put("message", "Email không tồn tại");
                 return response;
             }
-            User user = userOpt.get();
+            User user = optionalUser.get();
 
-            // tạo OTP
             String otp = String.valueOf(
                     100000 + new Random().nextInt(900000)
             );
@@ -123,15 +121,15 @@ public class ForgotPasswordController {
             String email = body.get("email");
             String newPassword = body.get("newPassword");
 
-            Optional<User> userOpt =
+            Optional<User> optionalUser =
                     userRepository.findByEmail(email);
 
-            if (userOpt.isEmpty()) {
+            if (optionalUser.isEmpty()) {
                 response.put("success", false);
                 response.put("message", "Không tìm thấy user");
                 return response;
             }
-            User user = userOpt.get();
+            User user = optionalUser.get();
 
             user.setPassword(
                     passwordEncoder.encode(newPassword)

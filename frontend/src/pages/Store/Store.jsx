@@ -29,6 +29,11 @@ export default function Store({ app }) {
 
     e.stopPropagation();
 
+    if (!app.user) {
+      alert("Vui lòng đăng nhập để thêm vào danh sách yêu thích");
+      return;
+    }
+
     try {
 
       await addToWishlist(bookId);

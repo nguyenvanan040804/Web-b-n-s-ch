@@ -26,7 +26,8 @@ public class BookService {
                 "Manga",
                 "Kim Đồng",
                 180,
-                2020
+                2020,
+                200
         ));
 
         books.add(new Book(
@@ -39,7 +40,8 @@ public class BookService {
                 "Detective",
                 "Kim Đồng",
                 220,
-                2022
+                2022,
+                250
         ));
     }
 

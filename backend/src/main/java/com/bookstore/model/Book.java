@@ -26,6 +26,11 @@ public class Book {
     private String publisher;
     private int pages;
     private int year;
+    private int weight; // in grams
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BookImage> images = new java.util.ArrayList<>();
+
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews;
     private double averageRating;
@@ -37,7 +42,7 @@ public class Book {
         this.salesCount = 0;
     }
 
-    public Book(Long id, String title, String author, String description, double price, String coverUrl, String category, String publisher, int pages, int year) {
+    public Book(Long id, String title, String author, String description, double price, String coverUrl, String category, String publisher, int pages, int year, int weight) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -48,6 +53,7 @@ public class Book {
         this.publisher = publisher;
         this.pages = pages;
         this.year = year;
+        this.weight = weight;
         this.reviews = new CopyOnWriteArrayList<>();
         this.averageRating = 0.0;
         // Seed some varying salesCount based on ID for sorting demonstration
@@ -132,6 +138,22 @@ public class Book {
 
     public void setYear(int year) {
         this.year = year;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
+    public List<BookImage> getImages() {
+        return images;
+    }
+
+    public void setImages(List<BookImage> images) {
+        this.images = images;
     }
 
     public List<Review> getReviews() {

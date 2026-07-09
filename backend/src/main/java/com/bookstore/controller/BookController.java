@@ -32,6 +32,11 @@ public class BookController {
         if (book.getCoverUrl() == null || book.getCoverUrl().trim().isEmpty()) {
             book.setCoverUrl("https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80");
         }
+        if (book.getImages() != null) {
+            for (com.bookstore.model.BookImage image : book.getImages()) {
+                image.setBook(book);
+            }
+        }
         Book savedBook = bookRepository.save(book);
         return ResponseEntity.ok(savedBook);
     }
@@ -60,5 +65,26 @@ public class BookController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+     @GetMapping("/{id}/related")
+    public ResponseEntity<List<Book>> getRelatedBooks(
+            @PathVariable Long id
+    ) {
+
+        Optional<Book> optionalBook = bookRepository.findById(id);
+
+        if (optionalBook.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Book book = optionalBook.get();
+
+        List<Book> relatedBooks =
+                bookRepository.findTop6ByCategoryAndIdNot(
+                        book.getCategory(),
+                        book.getId()
+                );
+
+        return ResponseEntity.ok(relatedBooks);
     }
 }
