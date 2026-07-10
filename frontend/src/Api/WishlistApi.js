@@ -1,7 +1,7 @@
 const API = "http://localhost:8082/api/wishlist";
 
 const getHeaders = () => {
-    const token = localStorage.getItem('jwtToken');
+    const token = sessionStorage.getItem('jwtToken');
     return {
         "Content-Type": "application/json",
         ...(token ? { "Authorization": `Bearer ${token}` } : {})

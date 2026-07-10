@@ -286,8 +286,8 @@ function App() {
   const location = useLocation();
   const page = location.pathname === '/' ? 'store' : location.pathname.substring(1);
 
-  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')) || null);
-  const [token, setToken] = useState(() => localStorage.getItem('jwtToken') || null);
+  const [user, setUser] = useState(() => JSON.parse(sessionStorage.getItem('user')) || null);
+  const [token, setToken] = useState(() => sessionStorage.getItem('jwtToken') || null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -297,14 +297,14 @@ function App() {
   const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('user', JSON.stringify(user));
+    sessionStorage.setItem('user', JSON.stringify(user));
   }, [user]);
 
   useEffect(() => {
     if (token) {
-      localStorage.setItem('jwtToken', token);
+      sessionStorage.setItem('jwtToken', token);
     } else {
-      localStorage.removeItem('jwtToken');
+      sessionStorage.removeItem('jwtToken');
     }
   }, [token]);
 
@@ -327,7 +327,7 @@ function App() {
       'Content-Type': 'application/json',
       ...(options.headers || {}),
     };
-    const currentToken = localStorage.getItem('jwtToken');
+    const currentToken = sessionStorage.getItem('jwtToken');
     if (currentToken) {
       headers['Authorization'] = `Bearer ${currentToken}`;
     }
@@ -354,10 +354,10 @@ function App() {
   };
 
   const [books, setBooks] = useState(DEFAULT_BOOKS);
-  const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem('cart')) || []);
+  const [cart, setCart] = useState(() => JSON.parse(sessionStorage.getItem('cart')) || []);
   
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart));
+    sessionStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
   const [search, setSearch] = useState('');
@@ -389,6 +389,7 @@ function App() {
   const [checkoutStep, setCheckoutStep] = useState('form');
   const [orders, setOrders] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+  const [allCoupons, setAllCoupons] = useState([]);
   const [checkoutInfo, setCheckoutInfo] = useState(() => JSON.parse(localStorage.getItem('checkoutInfo')) || { name: '', phone: '', email: '', provinceCode: '', districtCode: '', wardCode: '', specificAddress: '', address: '', note: '', paymentMethod: 'COD' });
   const [provincesData, setProvincesData] = useState([]);
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
@@ -425,7 +426,15 @@ function App() {
   };
 
   // OTP Verification
-  const [verifyOtpEmail, setVerifyOtpEmail] = useState(null);
+  const [verifyOtpEmail, setVerifyOtpEmail] = useState(() => sessionStorage.getItem('verifyOtpEmail') || null);
+
+  useEffect(() => {
+    if (verifyOtpEmail) {
+      sessionStorage.setItem('verifyOtpEmail', verifyOtpEmail);
+    } else {
+      sessionStorage.removeItem('verifyOtpEmail');
+    }
+  }, [verifyOtpEmail]);
   const [otpCode, setOtpCode] = useState('');
 
   const [newBook, setNewBook] = useState({ title: '', author: '', category: 'Kỹ năng', price: '', coverUrl: '', description: '', publisher: '', pages: '', year: '', weight: 350 });
@@ -481,6 +490,81 @@ function App() {
     }
   }
 
+  async function fetchAllCoupons() {
+    if (!['admin', 'superadmin'].includes(user?.role)) return;
+    try {
+      const res = await apiFetch('/api/coupons');
+      if (res.ok) {
+        const data = await res.json();
+        setAllCoupons(data);
+      }
+    } catch (err) {
+      console.error("Lỗi khi tải danh sách voucher:", err);
+    }
+  }
+
+  async function handleCreateCoupon(couponData) {
+    try {
+      const res = await apiFetch('/api/coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(couponData)
+      });
+      const data = await res.json();
+      if (res.ok && data.success !== false) {
+        toast.success("Tạo mã giảm giá thành công");
+        fetchAllCoupons();
+        return true;
+      } else {
+        toast.error(data.message || "Tạo mã thất bại");
+        return false;
+      }
+    } catch (err) {
+      toast.error("Lỗi server");
+      return false;
+    }
+  }
+
+  async function handleUpdateCoupon(id, couponData) {
+    try {
+      const res = await apiFetch(`/api/coupons/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(couponData)
+      });
+      if (res.ok) {
+        toast.success("Cập nhật mã thành công");
+        fetchAllCoupons();
+        return true;
+      } else {
+        toast.error("Cập nhật thất bại");
+        return false;
+      }
+    } catch (err) {
+      toast.error("Lỗi server");
+      return false;
+    }
+  }
+
+  async function handleDeleteCoupon(id) {
+    try {
+      const res = await apiFetch(`/api/coupons/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        toast.success("Đã xóa mã giảm giá");
+        fetchAllCoupons();
+        return true;
+      } else {
+        toast.error("Xóa thất bại");
+        return false;
+      }
+    } catch (err) {
+      toast.error("Lỗi server");
+      return false;
+    }
+  }
+
   async function fetchOrders() {
     if (!user) return;
     try {
@@ -508,6 +592,7 @@ function App() {
     }
     if (['admin', 'superadmin'].includes(user?.role)) {
       fetchAllUsers();
+      fetchAllCoupons();
     }
   }, [page, user]);
 
@@ -1025,15 +1110,17 @@ async function applyCoupon() {
         const formData = new FormData();
         formData.append('file', newBook.coverFile);
         
-        const uploadRes = await fetch('http://localhost:8080/api/images/upload', {
+        const currentToken = sessionStorage.getItem('jwtToken');
+        const uploadRes = await fetch('/api/images/upload', {
           method: 'POST',
+          headers: currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {},
           body: formData
         });
         
         if (uploadRes.ok) {
           uploadedFileName = await uploadRes.text();
         } else {
-          setAdminMessage('Lỗi khi tải ảnh lên.');
+          toast.error('Lỗi khi tải ảnh lên.');
           return;
         }
       }
@@ -1043,7 +1130,7 @@ async function applyCoupon() {
         author: newBook.author,
         category: newBook.category,
         price: Number(newBook.price) || 0,
-        coverUrl: uploadedFileName ? `http://localhost:8080/uploads/images/${uploadedFileName}` : newBook.coverUrl,
+        coverUrl: uploadedFileName ? `/uploads/images/${uploadedFileName}` : newBook.coverUrl,
         description: newBook.description,
         publisher: newBook.publisher,
         pages: Number(newBook.pages) || 0,
@@ -1061,14 +1148,70 @@ async function applyCoupon() {
       if (res.ok) {
         const savedBook = await res.json();
         setBooks((prev) => [savedBook, ...prev]);
-        setAdminMessage('Đã thêm sách mới thành công');
+        toast.success('Đã thêm sách mới thành công');
         setNewBook({ title: '', author: '', category: 'Kỹ năng', price: '', coverUrl: '', coverFile: null, description: '', publisher: '', pages: '', year: '', weight: 350 });
+        const fileInput = document.getElementById('new-cover');
+        if (fileInput) fileInput.value = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        setAdminMessage('Lỗi khi thêm sách vào backend');
+        toast.error('Lỗi khi thêm sách vào backend');
       }
     } catch (err) {
       console.error("Lỗi thêm sách:", err);
-      setAdminMessage('Không thể kết nối đến máy chủ.');
+      toast.error('Không thể kết nối đến máy chủ.');
+    }
+  }
+
+  async function handleUpdateBook(bookId, editData, coverFile) {
+    try {
+      let uploadedFileName = '';
+      if (coverFile) {
+        const formData = new FormData();
+        formData.append('file', coverFile);
+        
+        const currentToken = sessionStorage.getItem('jwtToken');
+        const uploadRes = await fetch('/api/images/upload', {
+          method: 'POST',
+          headers: currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {},
+          body: formData
+        });
+        
+        if (uploadRes.ok) {
+          uploadedFileName = await uploadRes.text();
+        } else {
+          toast.error('Lỗi khi tải ảnh bìa mới.');
+          return false;
+        }
+      }
+
+      const bookPayload = {
+        ...editData,
+        price: Number(editData.price) || 0,
+        pages: Number(editData.pages) || 0,
+        year: Number(editData.year) || 0,
+        weight: Number(editData.weight) || 350,
+        coverUrl: uploadedFileName ? `/uploads/images/${uploadedFileName}` : editData.coverUrl
+      };
+
+      const res = await apiFetch(`/api/books/${bookId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookPayload)
+      });
+
+      if (res.ok) {
+        toast.success("Cập nhật sách thành công!");
+        const updatedBook = await res.json();
+        setBooks(prev => prev.map(b => b.id === bookId ? updatedBook : b));
+        return true;
+      } else {
+        toast.error("Cập nhật sách thất bại.");
+        return false;
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Lỗi server khi cập nhật sách.");
+      return false;
     }
   }
 
@@ -1249,10 +1392,28 @@ const relatedBooks = selectedBook
     handleUpdateOrderStatus,
     handleDeleteOrder,
     handleCreateBook,
+    handleUpdateBook,
     handleDeleteBook,
     handleUpdateUserRole,
     handleToggleUserStatus,
     handleDeleteUser,
+    allCoupons,
+    handleCreateCoupon,
+    handleUpdateCoupon,
+    handleDeleteCoupon,
+    verifyOtpEmail,
+    setVerifyOtpEmail,
+    otpCode,
+    setOtpCode,
+    handleVerifyOtp,
+    handleGoogleLogin,
+    couponCode,
+    setCouponCode,
+    discount,
+    setDiscount,
+    couponMessage,
+    setCouponMessage,
+    applyCoupon,
     cartCount,
     cartTotal,
     filteredBooks,
@@ -1295,7 +1456,6 @@ applyCoupon,
 
   return (
     <div className="store-container">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover theme="light" />
       <header className="navbar">
         <div className="nav-brand" onClick={() => switchPage('store')}>
           <svg className="brand-logo-svg" viewBox="0 0 24 24" width="28" height="28">

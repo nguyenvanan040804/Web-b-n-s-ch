@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Ic, ICONS } from '../AdminIcons';
 import './Orders.css';
 
@@ -7,6 +7,8 @@ import './Orders.css';
  * Props: orders, handleUpdateOrderStatus, handleDeleteOrder, filterDate, setFilterDate, todayISO, user
  */
 export default function Orders({ orders, handleUpdateOrderStatus, handleDeleteOrder, filterDate, setFilterDate, todayISO, user }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
   return (
     <div>
       {/* Section header */}
@@ -28,12 +30,12 @@ export default function Orders({ orders, handleUpdateOrderStatus, handleDeleteOr
               className="date-input-field"
               value={filterDate}
               max={todayISO}
-              onChange={(e) => setFilterDate(e.target.value)}
+              onChange={(e) => { setFilterDate(e.target.value); setCurrentPage(1); }}
             />
             {filterDate && (
               <button 
                 className="date-clear-btn"
-                onClick={() => setFilterDate('')}
+                onClick={() => { setFilterDate(''); setCurrentPage(1); }}
                 title="Bỏ lọc, xem toàn bộ lịch sử đơn hàng"
               >
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
@@ -45,8 +47,16 @@ export default function Orders({ orders, handleUpdateOrderStatus, handleDeleteOr
         </div>
       </div>
 
-      {orders.length > 0 ? (
-        <div className="adm-card adm-no-pad">
+      
+      {orders.length > 0 ? (() => {
+        const sortedOrders = [...orders].sort((a, b) => b.id - a.id);
+        const totalPages = Math.ceil(sortedOrders.length / itemsPerPage);
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+        const currentOrders = sortedOrders.slice(indexOfFirstItem, indexOfLastItem);
+        return (
+          <div className="adm-card adm-no-pad">
+
           <div className="adm-table-wrap">
             <table className="adm-table">
               <thead>
@@ -62,7 +72,7 @@ export default function Orders({ orders, handleUpdateOrderStatus, handleDeleteOr
                 </tr>
               </thead>
               <tbody>
-                {orders.map(ord => (
+                {currentOrders.map(ord => (
                   <tr key={ord.id}>
                     <td><strong className="adm-order-id">#{ord.id}</strong></td>
                     <td>
@@ -119,10 +129,34 @@ export default function Orders({ orders, handleUpdateOrderStatus, handleDeleteOr
                   </tr>
                 ))}
               </tbody>
+            
             </table>
           </div>
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', padding: '16px' }}>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+                disabled={currentPage === 1}
+                style={{ padding: '6px 12px', border: '1px solid #ddd', borderRadius: '4px', background: currentPage === 1 ? '#f1f5f9' : '#fff', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', color: currentPage === 1 ? '#94a3b8' : '#333' }}
+              >
+                Trước
+              </button>
+              <span style={{ fontSize: '14px', color: '#475569' }}>
+                Trang {currentPage} / {totalPages}
+              </span>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+                disabled={currentPage === totalPages}
+                style={{ padding: '6px 12px', border: '1px solid #ddd', borderRadius: '4px', background: currentPage === totalPages ? '#f1f5f9' : '#fff', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', color: currentPage === totalPages ? '#94a3b8' : '#333' }}
+              >
+                Tiếp
+              </button>
+            </div>
+          )}
         </div>
-      ) : (
+        );
+      })() : (
+
         <div className="adm-card adm-empty-state">
           <Ic path={ICONS.orders} size={52} />
           <h4>Chưa có đơn hàng nào</h4>

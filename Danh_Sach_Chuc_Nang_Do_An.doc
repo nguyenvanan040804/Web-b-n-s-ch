@@ -1,0 +1,81 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="utf-8">
+<title>Danh Sách Chức Năng Đồ Án</title>
+<style>
+  body { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.5; }
+  h1 { text-align: center; color: #1e3a8a; font-size: 20pt; text-transform: uppercase; margin-bottom: 24px; }
+  h2 { color: #2563eb; font-size: 16pt; margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  ul { margin-top: 8px; margin-bottom: 16px; }
+  li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<h1>Danh Sách Chức Năng Đồ Án Web Bán Sách</h1>
+
+<h2>1. Hệ thống Xác thực & Bảo mật (Auth)</h2>
+<ul>
+  <li><strong>Đăng ký tài khoản mới:</strong> Hỗ trợ quy trình đăng ký an toàn qua việc gửi và xác thực mã OTP qua Email thật của người dùng.</li>
+  <li><strong>Đăng nhập truyền thống:</strong> Xác thực thông tin qua Email và Mật khẩu, mã hóa an toàn và bảo mật bằng JWT (JSON Web Token).</li>
+  <li><strong>Đăng nhập một chạm (SSO):</strong> Tích hợp đăng nhập nhanh và an toàn bằng tài khoản Google (Google OAuth2).</li>
+  <li><strong>Khôi phục mật khẩu (Forgot Password):</strong> Hỗ trợ cấp lại mật khẩu thông qua mã xác thực OTP gửi qua email, kèm theo kiểm tra mật khẩu mới an toàn.</li>
+  <li><strong>Phân quyền (Authorization):</strong> Kiểm soát chặt chẽ quyền truy cập từng API và giao diện theo 3 cấp độ: Khách hàng (User), Quản trị (Admin), và Quản trị tối cao (Superadmin).</li>
+  <li><strong>Đăng xuất:</strong> Hủy phiên đăng nhập và xóa token an toàn.</li>
+</ul>
+
+<h2>2. Chức năng dành cho Khách hàng (User)</h2>
+<ul>
+  <li><strong>Khám phá sách:</strong> Xem danh sách tất cả các đầu sách hiện có trên hệ thống với giao diện thẻ (card) trực quan.</li>
+  <li><strong>Tìm kiếm & Lọc sách:</strong> Tìm kiếm sách nhanh theo tên (thanh tìm kiếm trực tiếp) và lọc sách theo các danh mục chuyên biệt (Kỹ năng, Kinh doanh, Thiếu nhi, Văn học...).</li>
+  <li><strong>Chi tiết sách:</strong> Xem trang thông tin đầy đủ của một cuốn sách bao gồm: Hình ảnh bìa thật, giá tiền, tác giả, nhà xuất bản, năm xuất bản, khối lượng (gram), số trang và đoạn văn mô tả tóm tắt nội dung.</li>
+  <li><strong>Giỏ hàng thông minh (Cart):</strong> Thêm sách vào giỏ, tùy chỉnh tăng/giảm số lượng. Hệ thống tự động tính toán tổng tiền, và áp dụng công thức tính Phí vận chuyển (Ship) dựa trên tổng khối lượng sách.</li>
+  <li><strong>Mã giảm giá (Coupon/Voucher):</strong> Nhập và áp dụng các mã giảm giá cho đơn hàng, tự động tính toán số tiền được giảm trừ.</li>
+  <li><strong>Thanh toán đa nền tảng (Checkout):</strong> Hỗ trợ điền thông tin địa chỉ giao hàng và cung cấp 2 phương thức:
+    <ul>
+      <li>Thanh toán khi nhận hàng (COD).</li>
+      <li>Thanh toán trực tuyến 100% qua Cổng thanh toán VNPay.</li>
+    </ul>
+  </li>
+  <li><strong>Quản lý đơn hàng cá nhân:</strong> Theo dõi tiến trình các đơn hàng đã đặt (Trạng thái: Chờ duyệt, Đang giao, Đã giao thành công).</li>
+  <li><strong>Hủy đơn hàng:</strong> Hỗ trợ khách hàng hủy các đơn chưa được xử lý (đang ở trạng thái chờ duyệt).</li>
+  <li><strong>Liên hệ & Góp ý:</strong> Gửi tin nhắn phản hồi, góp ý cho ban quản trị thông qua form liên hệ.</li>
+</ul>
+
+<h2>3. Chức năng dành cho Quản trị viên (Admin)</h2>
+<ul>
+  <li><strong>Bảng điều khiển (Dashboard):</strong> Thống kê trực quan các số liệu tổng quan của cửa hàng (Tổng doanh thu, số lượng sách, số đơn hàng, tổng số người dùng).</li>
+  <li><strong>Quản lý Sách (Book Management):</strong>
+    <ul>
+      <li>Thêm sách mới: Hỗ trợ upload trực tiếp hình ảnh (File ảnh) từ máy tính lên Server lưu trữ nội bộ (Local Storage). Điền đầy đủ thông số sách.</li>
+      <li>Chỉnh sửa thông tin cơ bản của các cuốn sách đang có.</li>
+      <li>Xóa sách khỏi hệ thống kinh doanh.</li>
+    </ul>
+  </li>
+  <li><strong>Quản lý Đơn hàng (Order Management):</strong>
+    <ul>
+      <li>Xem danh sách toàn bộ các đơn đặt hàng từ tất cả người dùng trên hệ thống.</li>
+      <li>Cập nhật tiến độ giao hàng: Chuyển trạng thái đơn từ "Chờ xử lý" sang "Đang giao" hoặc "Hoàn thành".</li>
+      <li>Xóa hoặc Hủy các đơn hàng rác/lỗi.</li>
+    </ul>
+  </li>
+  <li><strong>Quản lý Người dùng mức cơ bản:</strong>
+    <ul>
+      <li>Xem danh sách và thông tin liên hệ của khách hàng.</li>
+      <li><strong>Khóa tài khoản (Ban User):</strong> Có quyền khóa các tài khoản khách hàng (User) vi phạm chính sách. (Lưu ý: Không thể khóa tài khoản của Admin khác).</li>
+    </ul>
+  </li>
+  <li><strong>Quản lý Mã giảm giá (Coupons):</strong> Tạo và phát hành mã giảm giá, thiết lập số % giảm cho các dịp khuyến mãi.</li>
+</ul>
+
+<h2>4. Chức năng dành cho Quản trị tối cao (Superadmin)</h2>
+<ul>
+  <li>Thừa hưởng <strong>toàn bộ</strong> các quyền quản lý và thống kê của cấp Admin.</li>
+  <li><strong>Cấp quyền (Phân quyền Role):</strong> Có quyền thay đổi chức vụ của người khác, nâng cấp Khách hàng (User) lên thành Quản trị viên (Admin) hoặc giáng chức Admin về lại User.</li>
+  <li><strong>Khóa tài khoản nội bộ:</strong> Có quyền tối thượng trong việc khóa tài khoản của các <strong>Admin</strong> khác.</li>
+  <li><strong>Xóa tài khoản vĩnh viễn:</strong> Có nút chức năng cực kỳ nguy hiểm là Xóa (Delete) hoàn toàn tài khoản của người dùng hoặc Admin ra khỏi cơ sở dữ liệu.</li>
+  <li><strong>Miễn nhiễm:</strong> Tài khoản mang quyền Superadmin không thể bị khóa hoặc xóa bởi bất kỳ ai (Bảo vệ an toàn tuyệt đối cho người sáng lập).</li>
+</ul>
+
+</body>
+</html>

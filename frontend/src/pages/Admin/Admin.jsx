@@ -7,12 +7,14 @@ import Books     from './Books/Books';
 import Orders    from './Orders/Orders';
 import AddBook   from './AddBook/AddBook';
 import Users     from './Users/Users';
+import Coupons   from './Coupons/Coupons';
 
 const TABS = [
   { id: 'dashboard', label: 'Tổng quan',         icon: 'dashboard' },
   { id: 'books',     label: 'Quản lý Sách',       icon: 'books'     },
   { id: 'orders',    label: 'Quản lý Đơn hàng',   icon: 'orders'    },
   { id: 'users',     label: 'Quản lý Người dùng', icon: 'users'     },
+  { id: 'coupons',   label: 'Quản lý Voucher',    icon: 'coupon'    },
   { id: 'add-book',  label: 'Thêm Sách mới',       icon: 'addBook'   },
 ];
 
@@ -28,13 +30,13 @@ export default function Admin({ app }) {
   const {
     orders, handleUpdateOrderStatus, handleDeleteOrder,
     newBook, setNewBook, handleCreateBook, adminMessage,
-    books, handleDeleteBook,
+    books, handleDeleteBook, handleUpdateBook,
     allUsers, handleUpdateUserRole, handleToggleUserStatus, handleDeleteUser,
     user, handleLogout, switchPage,
   } = app;
 
   let adminTab = location.pathname.substring(1);
-  const validTabs = ['dashboard', 'books', 'orders', 'users', 'add-book'];
+  const validTabs = ['dashboard', 'books', 'orders', 'users', 'coupons', 'add-book'];
   if (!validTabs.includes(adminTab)) {
     adminTab = 'dashboard';
   }
@@ -197,6 +199,7 @@ export default function Admin({ app }) {
             <Books
               books={books}
               handleDeleteBook={handleDeleteBook}
+              handleUpdateBook={handleUpdateBook}
               setAdminTab={setAdminTab}
             />
           )}
@@ -230,6 +233,10 @@ export default function Admin({ app }) {
               handleCreateBook={handleCreateBook}
               adminMessage={adminMessage}
             />
+          )}
+          
+          {adminTab === 'coupons' && (
+            <Coupons app={app} />
           )}
         </div>
       </div>

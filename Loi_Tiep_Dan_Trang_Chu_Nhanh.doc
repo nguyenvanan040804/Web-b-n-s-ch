@@ -1,0 +1,24 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="utf-8">
+<title>Lời Tiếp Dẫn Trang Chủ Đồ Án (Bản Ngắn Gọn)</title>
+<style>
+  body { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.6; }
+  h1 { text-align: center; color: #1e3a8a; font-size: 20pt; text-transform: uppercase; margin-bottom: 24px; }
+  p { margin-bottom: 12px; text-align: justify; }
+</style>
+</head>
+<body>
+
+<h1>LỜI TIẾP DẪN TRANG CHỦ (BẢN NHANH GỌN)</h1>
+
+<p>"Kính thưa thầy cô, sau đây em xin demo nhanh phần Giao diện Trang chủ của hệ thống Website Bán Sách."</p>
+
+<p>"Đầu tiên, ở trên cùng là thanh công cụ (Header) luôn được cố định khi cuộn trang, giúp người dùng dễ dàng tìm kiếm sách, xem giỏ hàng hoặc đăng nhập từ bất kỳ đâu. Ngay bên dưới là khu vực Banner quảng cáo nổi bật kết hợp cùng cột Danh mục bên trái, giúp khách hàng có thể lọc sách theo từng thể loại như Kinh tế, Kỹ năng hay Tiểu thuyết rất tiện lợi."</p>
+
+<p>"Kéo xuống phía dưới là phần hiển thị tâm điểm của trang web: Danh sách các quyển sách mới và bán chạy nhất. Mỗi quyển sách được thiết kế trực quan với hiệu ứng tương tác mượt mà khi di chuột qua, hiển thị rõ ràng hình ảnh, tên tác giả và giá bán. Toàn bộ thông tin sách ở đây đều được tải tự động và đồng bộ trực tiếp từ Database lên ạ."</p>
+
+<p>"Từ đây, người dùng có thể bấm luôn vào nút 'Thêm vào giỏ hàng', hoặc click trực tiếp vào một cuốn sách để xem chi tiết. Sau đây em xin phép click vào thử một quyển sách để thầy cô xem phần Chi tiết sản phẩm..."</p>
+
+</body>
+</html>

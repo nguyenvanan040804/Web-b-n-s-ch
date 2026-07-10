@@ -58,16 +58,20 @@ export default function Users({ allUsers, handleUpdateUserRole, handleToggleUser
                 </td>
                 <td align="right">
                   <div className="adm-actions-group">
-                    <button 
-                      className={`adm-text-action-btn ${user.active ? 'danger' : 'success'}`}
-                      onClick={() => {
-                        if (window.confirm(`Bạn có chắc chắn muốn ${user.active ? 'khóa' : 'mở khóa'} tài khoản ${user.name}?`)) {
-                          handleToggleUserStatus(user.id, user.active);
-                        }
-                      }}
-                    >
-                      {user.active ? 'Khóa TK' : 'Mở khóa'}
-                    </button>
+                    {currentUser?.email !== user.email && 
+                     ((currentUser?.role === 'superadmin' && user.role !== 'superadmin') || 
+                      (currentUser?.role === 'admin' && user.role === 'user')) && (
+                      <button 
+                        className={`adm-text-action-btn ${user.active ? 'danger' : 'success'}`}
+                        onClick={() => {
+                          if (window.confirm(`Bạn có chắc chắn muốn ${user.active ? 'khóa' : 'mở khóa'} tài khoản ${user.name}?`)) {
+                            handleToggleUserStatus(user.id, user.active);
+                          }
+                        }}
+                      >
+                        {user.active ? 'Khóa TK' : 'Mở khóa'}
+                      </button>
+                    )}
                     {currentUser?.role === 'superadmin' && (
                       <button
                         className="adm-text-action-btn danger"

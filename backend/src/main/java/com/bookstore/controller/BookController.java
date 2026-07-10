@@ -41,6 +41,31 @@ public class BookController {
         return ResponseEntity.ok(savedBook);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Book> updateBook(@PathVariable("id") Long id, @RequestBody Book bookDetails) {
+        Optional<Book> optionalBook = bookRepository.findById(id);
+        if (optionalBook.isPresent()) {
+            Book existingBook = optionalBook.get();
+            existingBook.setTitle(bookDetails.getTitle());
+            existingBook.setAuthor(bookDetails.getAuthor());
+            existingBook.setCategory(bookDetails.getCategory());
+            existingBook.setPrice(bookDetails.getPrice());
+            existingBook.setPublisher(bookDetails.getPublisher());
+            existingBook.setPages(bookDetails.getPages());
+            existingBook.setWeight(bookDetails.getWeight());
+            existingBook.setDescription(bookDetails.getDescription());
+            
+            if (bookDetails.getCoverUrl() != null && !bookDetails.getCoverUrl().trim().isEmpty()) {
+                existingBook.setCoverUrl(bookDetails.getCoverUrl());
+            }
+
+            Book updatedBook = bookRepository.save(existingBook);
+            return ResponseEntity.ok(updatedBook);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+
     @PostMapping("/{id}/reviews")
     public ResponseEntity<Book> addReview(@PathVariable("id") Long id, @RequestBody Review review) {
         Optional<Book> optionalBook = bookRepository.findById(id);

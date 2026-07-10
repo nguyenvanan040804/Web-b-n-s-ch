@@ -21,6 +21,7 @@ export default function LoginRegister({ app }) {
     handleRegister,
     switchPage,
     verifyOtpEmail,
+    setVerifyOtpEmail,
     otpCode,
     setOtpCode,
     handleVerifyOtp,
@@ -64,44 +65,108 @@ export default function LoginRegister({ app }) {
     </svg>
   );
 
+  const handleCancelOtp = () => {
+    if (setVerifyOtpEmail) setVerifyOtpEmail(null);
+    setOtpCode('');
+    switchPage('register');
+  };
+
   if (verifyOtpEmail) {
     return (
-      <div className="page-wrapper">
-        <div className="login-shell" style={{ maxWidth: '500px', margin: '0 auto', display: 'block' }}>
-          <section className="login-form" style={{ borderRadius: '24px' }}>
-            <div style={{ textAlign: 'center' }}>
-              <h2>Xác thực OTP</h2>
-              <p>Mã xác thực 6 số đã được gửi đến email <strong>{verifyOtpEmail}</strong>. Vui lòng kiểm tra email của bạn.</p>
+      <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+        <div className="login-shell" style={{ display: 'block', width: '100%', maxWidth: '420px', margin: '0 auto' }}>
+          <section className="login-form" style={{ 
+            borderRadius: '16px', 
+            padding: '40px 32px', 
+            boxShadow: '0 10px 25px rgba(0,0,0,0.05)',
+            backgroundColor: '#ffffff'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+              <div style={{ 
+                width: '64px', height: '64px', borderRadius: '50%', 
+                backgroundColor: '#f0f7ff', color: '#4a90e2', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                margin: '0 auto 16px', fontSize: '28px' 
+              }}>
+                ✉️
+              </div>
+              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#333', marginBottom: '12px' }}>Xác thực Email</h2>
+              <p style={{ color: '#666', fontSize: '14px', lineHeight: '1.5' }}>
+                Mã xác thực 6 số đã được gửi đến email<br/>
+                <strong style={{ color: '#333' }}>{verifyOtpEmail}</strong>
+              </p>
             </div>
-            <form onSubmit={handleVerifyOtp} style={{ marginTop: '20px' }}>
-              <div className="form-group">
+            
+            <form onSubmit={handleVerifyOtp}>
+              <div className="form-group" style={{ marginBottom: '24px' }}>
                 <input
                   type="text"
                   value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value)}
-                  placeholder="Nhập mã OTP (VD: 123456)"
+                  onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="------"
                   maxLength="6"
-                  style={{ textAlign: 'center', letterSpacing: '4px', fontSize: '1.2rem', fontWeight: 'bold' }}
+                  style={{ 
+                    textAlign: 'center', letterSpacing: '12px', 
+                    fontSize: '1.8rem', fontWeight: 'bold',
+                    padding: '16px', borderRadius: '12px',
+                    border: '2px solid #e0e0e0', outline: 'none',
+                    transition: 'border-color 0.3s ease',
+                    width: '100%', boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#4a90e2'}
+                  onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
                   required
                 />
               </div>
-              <button type="submit" className="submit-btn" disabled={loading || otpCode.length !== 6}>
-                {loading ? 'Đang xử lý...' : 'Xác nhận OTP'}
-              </button>
+              
               <button 
-                type="button" 
+                type="submit" 
                 className="submit-btn" 
-                style={{ 
-                  marginTop: '12px', 
-                  backgroundColor: resendTimer > 0 ? '#e0e0e0' : '#4a90e2', 
-                  color: resendTimer > 0 ? '#888' : '#fff',
-                  cursor: resendTimer > 0 ? 'not-allowed' : 'pointer'
-                }} 
-                onClick={handleResendClick} 
-                disabled={resendTimer > 0 || loading}
+                disabled={loading || otpCode.length !== 6}
+                style={{
+                  width: '100%', padding: '14px', borderRadius: '12px',
+                  fontSize: '16px', fontWeight: '600', marginBottom: '16px',
+                  backgroundColor: (loading || otpCode.length !== 6) ? '#a0c4eb' : '#4a90e2',
+                  border: 'none', color: '#fff', cursor: (loading || otpCode.length !== 6) ? 'not-allowed' : 'pointer',
+                  transition: 'background-color 0.3s ease'
+                }}
               >
-                {resendTimer > 0 ? `Gửi lại mã OTP (${resendTimer}s)` : 'Gửi lại mã OTP'}
+                {loading ? 'Đang xác thực...' : 'Xác nhận OTP'}
               </button>
+              
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button 
+                  type="button" 
+                  style={{ 
+                    flex: 1, padding: '12px', borderRadius: '12px',
+                    backgroundColor: resendTimer > 0 ? '#f5f5f5' : '#fff', 
+                    color: resendTimer > 0 ? '#999' : '#4a90e2',
+                    border: `1px solid ${resendTimer > 0 ? '#e0e0e0' : '#4a90e2'}`,
+                    cursor: resendTimer > 0 ? 'not-allowed' : 'pointer',
+                    fontSize: '14px', fontWeight: '500', transition: 'all 0.3s ease'
+                  }} 
+                  onClick={handleResendClick} 
+                  disabled={resendTimer > 0 || loading}
+                >
+                  {resendTimer > 0 ? `Gửi lại (${resendTimer}s)` : 'Gửi lại mã'}
+                </button>
+                
+                <button 
+                  type="button" 
+                  style={{ 
+                    flex: 1, padding: '12px', borderRadius: '12px',
+                    backgroundColor: '#fff', color: '#d32f2f',
+                    border: '1px solid #ffcdd2',
+                    cursor: 'pointer', fontSize: '14px', fontWeight: '500',
+                    transition: 'all 0.3s ease'
+                  }} 
+                  onMouseOver={(e) => Object.assign(e.target.style, { backgroundColor: '#fff0f2', borderColor: '#d32f2f' })}
+                  onMouseOut={(e) => Object.assign(e.target.style, { backgroundColor: '#fff', borderColor: '#ffcdd2' })}
+                  onClick={handleCancelOtp}
+                >
+                  Hủy bỏ
+                </button>
+              </div>
             </form>
           </section>
         </div>

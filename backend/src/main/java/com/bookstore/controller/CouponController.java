@@ -9,15 +9,54 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import com.bookstore.service.CouponService;
+import org.springframework.http.ResponseEntity;
+
 @RestController
 @RequestMapping("/api/coupons")
 @CrossOrigin(origins = "http://localhost:5173")
 public class CouponController {
 
     private final CouponRepository couponRepository;
+    private final CouponService couponService;
 
-    public CouponController(CouponRepository couponRepository) {
+    public CouponController(CouponRepository couponRepository, CouponService couponService) {
         this.couponRepository = couponRepository;
+        this.couponService = couponService;
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllCoupons() {
+        return ResponseEntity.ok(couponService.getAllCoupons());
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createCoupon(@RequestBody Coupon coupon) {
+        if (couponRepository.findByCode(coupon.getCode()).isPresent()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Mã giảm giá đã tồn tại");
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok(couponService.createCoupon(coupon));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateCoupon(@PathVariable Long id, @RequestBody Coupon coupon) {
+        Coupon updated = couponService.updateCoupon(id, coupon);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCoupon(@PathVariable Long id) {
+        couponService.deleteCoupon(id);
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Đã xóa mã giảm giá");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/apply")

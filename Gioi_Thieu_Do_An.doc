@@ -1,0 +1,44 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="utf-8">
+<title>Giới Thiệu Đồ Án</title>
+<style>
+  body { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.6; }
+  h1 { text-align: center; color: #1e3a8a; font-size: 22pt; text-transform: uppercase; margin-bottom: 24px; }
+  h2 { color: #2563eb; font-size: 16pt; margin-top: 24px; border-bottom: 2px solid #ddd; padding-bottom: 4px; }
+  p { margin-bottom: 12px; text-align: justify; }
+  ul { margin-top: 8px; margin-bottom: 16px; }
+  li { margin-bottom: 8px; text-align: justify; }
+  .highlight { font-weight: bold; color: #1e3a8a; }
+</style>
+</head>
+<body>
+
+<h1>BÁO CÁO ĐỒ ÁN<br>GIỚI THIỆU TỔNG QUAN VỀ ĐỀ TÀI</h1>
+
+<h2>1. Tên Đề Tài</h2>
+<p><span class="highlight">Xây dựng Website Thương mại Điện tử chuyên kinh doanh Sách trực tuyến.</span></p>
+
+<h2>2. Lý Do Chọn Đề Tài (Tính Cấp Thiết)</h2>
+<p>Trong thời đại công nghệ số hiện nay, xu hướng mua sắm trực tuyến (E-commerce) đang phát triển mạnh mẽ và dần trở thành một phần không thể thiếu trong thói quen tiêu dùng của xã hội. Việc mua sắm online mang lại sự tiện lợi, tiết kiệm thời gian đi lại và cho phép khách hàng dễ dàng so sánh giá cả cũng như tìm kiếm sản phẩm.</p>
+<p>Sách là nguồn tri thức vô giá của nhân loại. Dù công nghệ thông tin phát triển, nhu cầu đọc sách in truyền thống vẫn luôn giữ một vị trí quan trọng. Tuy nhiên, việc phải trực tiếp đến các nhà sách để tìm kiếm một cuốn sách ưng ý đôi khi tốn nhiều thời gian và giới hạn sự lựa chọn.</p>
+<p>Xuất phát từ thực tiễn đó, đề tài <em>"Xây dựng Website Thương mại Điện tử chuyên kinh doanh Sách trực tuyến"</em> được lựa chọn và triển khai. Hệ thống không chỉ giúp kết nối những người yêu sách với nguồn tri thức khổng lồ một cách nhanh chóng, mà còn cung cấp một giải pháp quản lý bán hàng toàn diện, chuyên nghiệp cho các nhà sách trong thời kỳ chuyển đổi số.</p>
+
+<h2>3. Mục Tiêu Của Đồ Án</h2>
+<ul>
+  <li><strong>Đối với Khách hàng (End-Users):</strong> Xây dựng một nền tảng mua sắm trực tuyến thân thiện, trực quan và dễ sử dụng. Khách hàng có thể dễ dàng tìm kiếm sách theo tựa đề hoặc danh mục, xem chi tiết đánh giá, thêm vào giỏ hàng và tiến hành đặt hàng - thanh toán trực tuyến (VNPay) một cách an toàn và nhanh chóng.</li>
+  <li><strong>Đối với Chủ cửa hàng (Admins):</strong> Cung cấp một hệ thống Quản trị (Dashboard) mạnh mẽ, bảo mật cao. Giúp chủ cửa hàng dễ dàng quản lý kho sách, theo dõi doanh thu, xử lý các đơn đặt hàng, quản lý mã giảm giá và kiểm soát thông tin người dùng một cách tối ưu nhất.</li>
+  <li><strong>Về mặt Kỹ thuật:</strong> Áp dụng các công nghệ lập trình web hiện đại nhất hiện nay như ReactJS (Frontend) và Spring Boot (Backend) nhằm xây dựng một hệ thống có kiến trúc chuẩn mực (Clean Architecture), hiệu năng cao, bảo mật chặt chẽ và dễ dàng mở rộng, bảo trì trong tương lai.</li>
+</ul>
+
+<h2>4. Đối Tượng và Phạm Vi Phục Vụ</h2>
+<ul>
+  <li><strong>Khách hàng mục tiêu:</strong> Mọi cá nhân, học sinh, sinh viên, người đi làm có niềm đam mê đọc sách và nhu cầu mua sắm trực tuyến trên toàn quốc.</li>
+  <li><strong>Phạm vi hệ thống:</strong> Website tập trung vào quy trình kinh doanh B2C (Business to Consumer) cốt lõi bao gồm: Trưng bày sản phẩm, Quản lý giỏ hàng, Xử lý thanh toán, Quản lý Đơn hàng, Quản lý Tài khoản và Bảng thống kê.</li>
+</ul>
+
+<h2>5. Tổng Kết</h2>
+<p>Đồ án không chỉ là một bài toán thực hành nhằm tổng hợp kiến thức đã học tại trường, mà còn là một sản phẩm thực tế, có tính ứng dụng cao. Website được kỳ vọng sẽ mang lại một trải nghiệm mua sắm sách tuyệt vời, mượt mà và an toàn, đồng thời trở thành một công cụ quản lý đắc lực cho các nhà kinh doanh xuất bản phẩm.</p>
+
+</body>
+</html>
